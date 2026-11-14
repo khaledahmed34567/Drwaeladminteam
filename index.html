@@ -249,6 +249,79 @@ html[data-theme=dark] .stat{background:#20243d;color:#cfd4ff}html[data-theme=dar
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style id="dwx-css">
+/* DWX: إضافات التصميم (إضافية فقط — تُحمَّل بعد التصميم الأصلي) */
+@media print{html{display:none!important}}
+html.dwx-blur body{filter:blur(22px)}
+/* ---- دخول بالكود ---- */
+.abox.dwx-codemode #le,.abox.dwx-codemode #lp,.abox.dwx-codemode #lgo,.abox.dwx-codemode #lgg,.abox.dwx-codemode #lfg,.abox.dwx-codemode #lsu{display:none!important}
+.abox:not(.dwx-codemode) #dwx-lg{display:none}
+#dwx-lg{text-align:center}
+.dwx-lock{width:64px;height:64px;margin:0 auto 10px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#16235a,#5a2c72);color:var(--gold2);box-shadow:0 8px 22px rgba(26,42,102,.35),inset 0 0 0 1.5px rgba(245,168,58,.7)}
+.dwx-lt{font-weight:700;font-size:18px}.dwx-ls{font-size:13.5px;color:var(--mute);margin:2px 0 12px}
+.dwx-codein,.dwx-codeout{text-align:center!important;letter-spacing:2px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:19px!important;font-weight:700;text-transform:uppercase}
+.dwx-codeout{background:#fff7e6;border-color:var(--gold)}
+.dwx-sel{direction:rtl;text-align:right}
+/* ---- بطاقات الأدمنز ---- */
+.dwx-card{background:#fff;border-radius:22px;padding:16px;margin-bottom:12px;box-shadow:0 2px 12px rgba(20,25,60,.06)}
+.dwx-h{font-weight:700;font-size:17px;margin-bottom:10px}
+.dwx-nm{text-align:center;font-weight:700;margin-bottom:10px}
+.dwx-str{height:8px;border-radius:8px;background:#e4e5ee;overflow:hidden}.dwx-str i{display:block;height:100%;width:0;background:linear-gradient(90deg,#d97706,#1f9d66);transition:width .3s}
+.dwx-bd{font-size:12px;padding:2px 10px;border-radius:999px;margin-inline-start:6px}.dwx-bd.on{background:#e6f6ee;color:var(--ok)}.dwx-bd.off{background:#fdeaee;color:var(--err)}
+#dwx-ov,#dwx-ov2{position:fixed;inset:0;z-index:400;background:rgba(11,19,49,.72);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.dwx-sheet{position:relative;background:#fff;color:var(--ink);border-radius:26px;padding:22px;width:min(420px,100%);max-height:90vh;overflow:auto}
+.dwx-x{position:absolute;top:12px;inset-inline-end:12px;width:34px;height:34px;border-radius:50%;background:#eceef6;display:flex;align-items:center;justify-content:center}
+.dwx-sr{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0}.dwx-sr .fi{width:auto;flex:1;margin:0;padding:8px 10px}
+.dwx-toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));inset-inline:24px;z-index:500;background:#101426;color:#fff;border-radius:999px;padding:12px 18px;text-align:center;font-weight:700}
+/* ---- إشعارات على الشاشة ---- */
+#dwx-stack{position:fixed;top:calc(10px + env(safe-area-inset-top));inset-inline:12px;z-index:450;display:flex;flex-direction:column;gap:8px;pointer-events:none;align-items:center}
+.dwx-n{pointer-events:auto;display:flex;align-items:center;gap:12px;width:min(480px,100%);padding:12px 14px;border-radius:22px;color:#fff;background:linear-gradient(135deg,rgba(22,35,90,.96),rgba(42,35,115,.96) 60%,rgba(90,44,114,.96));border:1px solid rgba(245,168,58,.55);box-shadow:0 14px 34px rgba(11,19,49,.45);backdrop-filter:blur(10px);animation:dwxIn .35s cubic-bezier(.2,.9,.3,1.2)}
+.dwx-n.out{animation:dwxOut .26s ease forwards}
+@keyframes dwxIn{from{transform:translateY(-130%);opacity:0}to{transform:none;opacity:1}}
+@keyframes dwxOut{to{transform:translateY(-130%);opacity:0}}
+.dwx-ni{flex:none;width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--gold);color:#1a1200}
+.dwx-n-pay .dwx-ni{background:#34d399}.dwx-n-group .dwx-ni{background:#60a5fa}.dwx-n-signup .dwx-ni{background:#f472b6}
+.dwx-nb{flex:1;min-width:0}.dwx-nt{font-weight:700;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dwx-nx{font-size:13.5px;opacity:.85;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dwx-nc{flex:none;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center}
+#dwx-bell{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));inset-inline-start:16px;z-index:60;width:50px;height:50px;border-radius:50%;background:var(--navy);color:var(--gold2);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(11,19,49,.4);border:1.5px solid rgba(245,168,58,.7)}
+#dwx-badge{position:absolute;top:-4px;inset-inline-end:-4px;min-width:20px;height:20px;border-radius:10px;padding:0 5px;background:var(--err);color:#fff;font:700 11px/20px inherit;font-style:normal;text-align:center}
+/* ---- شات الدعم بتصميم جديد ---- */
+.chatbox{display:flex;flex-direction:column;background-color:#e9ecf8;background-image:radial-gradient(rgba(26,42,102,.07) 1.3px,transparent 1.4px);background-size:20px 20px;border-radius:24px;padding:14px 10px;max-height:58vh;min-height:260px;scroll-behavior:smooth;border:1px solid var(--line)}
+.chatbox:empty::before{content:"ابدأ المحادثة بكتابة رسالتك";margin:auto;color:var(--mute);font-weight:700;font-size:14px}
+.chatbox .bub{max-width:80%;margin:4px 0;padding:9px 13px 6px;border-radius:20px;border-end-start-radius:6px;background:linear-gradient(135deg,#1a2a66,#2a2373);color:#fff;align-self:flex-start;box-shadow:0 2px 8px rgba(20,25,60,.14);line-height:1.6;word-break:break-word}
+.chatbox .bub.me{background:#fff;color:var(--ink);align-self:flex-end;margin-inline-start:0;border-radius:20px;border-end-end-radius:6px}
+.chatbox .bub .bn{font-size:11.5px;color:var(--gold2);opacity:1}
+.chatbox .bub.me .bn{color:#3a4fb3}
+.chatbox .bub .bt{text-align:end;font-size:10.5px;opacity:.65}
+.chatbox .bub .pimg{border-radius:14px;max-height:260px;object-fit:cover}
+.chatbox .bub a{color:inherit!important}
+html[data-theme=dark] .chatbox .bub.me{background:#2a3563;color:#fff}
+.comp{border:1.5px solid var(--line);padding:6px 8px;box-shadow:0 6px 18px rgba(20,25,60,.08);align-items:flex-end}
+.comp:focus-within{border-color:var(--gold)}
+.comp textarea{padding:10px 8px;line-height:1.5}
+.cs{background:linear-gradient(135deg,var(--gold),#ffb347)!important;color:#1a1200!important;width:44px;height:44px;box-shadow:0 4px 12px rgba(245,168,58,.45);flex:none}
+.cs:active{transform:scale(.92)}
+.ci{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer}
+/* ---- بصمة / بوابة التحقق / صورة البروفايل / التحديث ---- */
+.dwx-native #dwx-own{display:none!important}
+.dwx-biobtn{display:flex!important;align-items:center;justify-content:center;gap:10px;margin-bottom:10px}
+#dwx-gate{position:fixed;inset:0;z-index:460;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(180deg,#16235a 0%,#0b1331 100%);overflow:auto}
+.dwx-gc{background:#fff;color:var(--ink);border-radius:26px;padding:22px;width:min(420px,100%)}
+.dwx-spin{width:34px;height:34px;margin:0 auto;border-radius:50%;border:4px solid #e4e5ee;border-top-color:var(--gold);animation:dwxSp .8s linear infinite}
+@keyframes dwxSp{to{transform:rotate(360deg)}}
+.dwx-gc{text-align:center}
+.dwx-cam{width:min(300px,80vw);height:min(300px,80vw);margin:0 auto;border-radius:50%;overflow:hidden;border:4px solid var(--gold);background:#000;box-shadow:0 8px 24px rgba(11,19,49,.4)}
+.dwx-cam video,.dwx-cam canvas{width:100%;height:100%;object-fit:cover;display:block}
+.dwx-cam video{transform:scaleX(-1)}
+.dwx-av{position:absolute!important;bottom:14px;inset-inline-end:18px;width:46px;height:46px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);background:#fff}
+.dwx-av2{float:inline-start;width:48px;height:48px;border-radius:50%;object-fit:cover;margin-inline-end:10px;border:2px solid var(--gold)}
+#dwx-ver{position:fixed;bottom:calc(6px + env(safe-area-inset-bottom));inset-inline-end:10px;z-index:55;font-size:11px;color:var(--mute);opacity:.8;pointer-events:none}
+#dwx-upd{position:fixed;inset-inline:12px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:440;display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:20px;color:#fff;background:linear-gradient(135deg,#16235a,#5a2c72);border:1px solid rgba(245,168,58,.6);box-shadow:0 12px 30px rgba(11,19,49,.45)}
+.dwx-ui{flex:none;width:40px;height:40px;border-radius:12px;background:var(--gold);color:#1a1200;display:flex;align-items:center;justify-content:center}
+.dwx-ub{flex:1;min-width:0}.dwx-ut{font-weight:700;font-size:14px}
+.dwx-uprog{height:6px;border-radius:6px;background:rgba(255,255,255,.2);margin-top:6px;overflow:hidden}.dwx-uprog i{display:block;height:100%;width:0;background:var(--gold2);transition:width .2s}
+</style>
 </head><body>
 <section id="login" class="screen"><div class="glow"></div><img class="logo-sm" data-lg alt="" draggable="false"><div class="abox" style="margin-top:16px"><h2 style="margin-bottom:10px">لوحة الإدارة</h2><input class="fi" id="le" type="email" placeholder="البريد الإلكتروني" autocomplete="off"><input class="fi" id="lp" type="password" placeholder="كلمة المرور"><button class="btn gold" id="lgo">دخول</button><button class="btn ghost" id="lgg" style="margin-top:8px">الدخول بحساب جوجل</button><button class="btn ghost" id="lfg" style="margin-top:8px">نسيت كلمة المرور</button><button class="btn ghost" id="lsu" style="margin-top:8px">إنشاء حساب الأدمن (أول مرة)</button><div id="lm"></div></div></section>
 <main id="app" class="hide"><div id="ban" class="stat err hide" style="margin:10px 16px">صلاحيات الأدمن مش شغالة. انشر قواعد Firebase الجديدة (firestore.rules) ثم أعد فتح الصفحة.</div><div class="hero"><div class="top2"><img class="logo-sm" data-lg alt="" draggable="false"><button class="wp" id="so">تسجيل الخروج</button></div><div style="padding:6px 22px 22px;color:#fff;font-weight:700;font-size:18px">لوحة إدارة د. وائل</div></div><div class="wrap" id="body"></div></main><div id="modal2" class="hide"></div>
@@ -1438,6 +1511,31 @@ window.makeQR=function(text){var q=new QR(-1,EC.M);q.addData(text);q.make();var 
 
 </script>
 <script>
+/* DWX-PRE: إضافات تعمل قبل السكربت الرئيسي (إضافية فقط) */
+(function(){try{
+  var X=window.DWX=window.DWX||{};
+  /* جسر التطبيق الأصلي (APK): يعرّف DWNative الذي تتوقعه اللوحة أصلًا */
+  if(window.AndroidBridge&&!window.DWNative){
+    window.DWNative={postMessage:function(s){window.AndroidBridge.postMessage(String(s))},onmessage:null};
+  }
+  /* التقاط إعدادات Firebase + اعتبار حسابات الأكواد السرية موثّقة البريد */
+  var oi=firebase.initializeApp;
+  firebase.initializeApp=function(c,n){
+    var a=oi.apply(firebase,arguments);
+    if(n===undefined){
+      X.cfg=c;
+      try{a.auth().onAuthStateChanged(function(u){
+        if(u&&/@code\.dw$/i.test(u.email||"")){
+          try{Object.defineProperty(u,"emailVerified",{value:true,configurable:true,writable:true})}
+          catch(e){try{u.emailVerified=true}catch(_){}}
+        }
+      })}catch(e){}
+    }
+    return a;
+  };
+}catch(e){}})();
+</script>
+<script>
 (()=>{"use strict";
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -1630,4 +1728,369 @@ $("#so").onclick=()=>auth.signOut().then(()=>location.reload());
 $$("img[data-lg]").forEach(i=>i.src=LOGO.ar);
 })();
 
-</script></body></html>
+</script><script>
+/* DWX-POST: دخول بالكود السري + إدارة الأدمنز + مولّد الأكواد + إشعارات منبثقة بأصوات + حماية النسخ (إضافية فقط) */
+(function(){"use strict";
+var D=document,W=window,X=W.DWX=W.DWX||{};
+var SUPER="khwailedapp@gmail.com",AL="ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+var auth=null,db=null;
+function $(s,r){return(r||D).querySelector(s)}
+function $$(s,r){return Array.prototype.slice.call((r||D).querySelectorAll(s))}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function fb(){if(!auth){try{auth=firebase.auth();db=firebase.firestore()}catch(e){}}return!!auth}
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+var IC={
+ lock:'<path d="M7 11V8a5 5 0 0110 0v3"/><rect x="4" y="11" width="16" height="10" rx="3"/><path d="M12 15v2"/>',
+ chat:'<path d="M21 12a8 8 0 01-11.6 7.1L4 20l1-4.6A8 8 0 1121 12z"/>',
+ cash:'<rect x="2" y="6" width="20" height="12" rx="3"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9v.01M18 15v.01"/>',
+ users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0"/><path d="M16 4.6a3.5 3.5 0 010 6.8M18 14.2a6.5 6.5 0 013.5 5.8"/>',
+ bell:'<path d="M6 9a6 6 0 1112 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2 2 0 004 0"/>',
+ pop:'<path d="M4 5h16v11H9l-5 4z"/>',
+ x:'<path d="M6 6l12 12M18 6L6 18"/>',
+ fp:'<path d="M12 11v3.5a6 6 0 01-1 3.3M8 9.5a4 4 0 018 0V13a9 9 0 01-1.6 5"/><path d="M5 10a7 7 0 0114 0v2a14 14 0 01-1.2 5.6M5 14.5c0 1.2-.2 2.4-.6 3.5"/>',
+ cam:'<path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/>',
+ up:'<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>'
+};
+function ic(n,s){return'<svg width="'+(s||22)+'" height="'+(s||22)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+IC[n]+'</svg>'}
+function toast(m){var e=D.createElement("div");e.className="dwx-toast";e.textContent=m;D.body.appendChild(e);setTimeout(function(){e.remove()},3200)}
+
+/* ===== الأكواد السرية ===== */
+function genBody(n){var out="",a=new Uint8Array(64);while(out.length<n){crypto.getRandomValues(a);for(var i=0;i<a.length&&out.length<n;i++){if(a[i]<248)out+=AL[a[i]%31]}}return out}
+function fmt(b){return"DW-"+b.match(/.{4}/g).join("-")}
+function norm(raw){var u=String(raw||"").toUpperCase().replace(/[^A-Z0-9]/g,"");if((u.length===14||u.length===18)&&u.indexOf("DW")===0)u=u.slice(2);return u}
+function okBody(b){if(b.length!==12&&b.length!==16)return false;for(var i=0;i<b.length;i++)if(AL.indexOf(b[i])<0)return false;return true}
+async function sha(s){var b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.prototype.map.call(new Uint8Array(b),function(x){return x.toString(16).padStart(2,"0")}).join("")}
+async function creds(b){return{email:"c"+(await sha("em|"+b)).slice(0,30)+"@code.dw",pw:await sha("pw|"+b)}}
+function copyText(t){X.allowCopy=true;var p=(navigator.clipboard&&navigator.clipboard.writeText)?navigator.clipboard.writeText(t):Promise.reject();return p.catch(function(){var ta=D.createElement("textarea");ta.value=t;ta.setAttribute("data-dwx-allow","1");ta.style.cssText="position:fixed;opacity:0;top:0;left:0";D.body.appendChild(ta);ta.select();var ok=false;try{ok=D.execCommand("copy")}catch(e){}ta.remove();if(!ok)throw 0}).then(function(){X.allowCopy=false},function(){X.allowCopy=false;throw 0})}
+
+/* ===== واجهة الدخول بالكود ===== */
+var NB=W.AndroidBridge||null;X.native=X.native||{};
+var fails=0,lockUntil=0;
+function lmErr(m){var l=$("#lm");if(l)l.innerHTML='<div class="stat err">'+esc(m)+'</div>'}
+/* الكود يفتح إما حساب أدمن بكود، أو حساب المالك (الذي غُيّرت كلمة مروره لتُشتق من كوده) */
+async function codeSignIn(b){
+  var c=await creds(b);
+  try{await auth.signInWithEmailAndPassword(c.email,c.pw)}
+  catch(e1){
+    if(e1&&e1.code==="auth/network-request-failed")throw e1;
+    await auth.signInWithEmailAndPassword(SUPER,c.pw);
+  }
+}
+async function runLogin(raw,viaSecret){
+  var go=$("#dwx-go"),inp=$("#dwx-code");
+  if(!fb())return lmErr("تعذر تهيئة الاتصال");
+  var now=Date.now();if(now<lockUntil)return lmErr("محاولات كثيرة، انتظر "+Math.ceil((lockUntil-now)/1000)+" ثانية");
+  var b=norm(raw);if(!okBody(b))return lmErr("اكتب الكود كاملًا بالشكل DW-XXXX-XXXX-XXXX");
+  if(go)go.disabled=true;var lm0=$("#lm");if(lm0)lm0.innerHTML="";
+  try{await codeSignIn(b);fails=0;X.lastCode=b;if(inp)inp.value=""}
+  catch(e){
+    if(e&&e.code==="auth/network-request-failed")lmErr("تحقق من الاتصال بالإنترنت");
+    else if(viaSecret){if(NB)NB.clearSecret();lmErr("الكود المحفوظ لم يعد صالحًا، اكتب الكود الجديد")}
+    else{fails++;if(fails>=5){lockUntil=Date.now()+60000;fails=0;lmErr("محاولات كثيرة، حاول بعد دقيقة")}else lmErr("الكود غير صحيح")}
+  }
+  if(go)go.disabled=false;
+}
+function initLogin(){
+  var box=$("#login .abox");if(!box||$("#dwx-code"))return;
+  box.classList.add("dwx-codemode");
+  var h=D.createElement("div");h.id="dwx-lg";
+  h.innerHTML='<div class="dwx-lock">'+ic("lock",30)+'</div><div class="dwx-lt">الدخول بالكود السري</div><div class="dwx-ls">اكتب الكود الذي أعطاك إياه المدير</div>'
+   +(NB&&NB.hasSecret()?'<button class="btn ghost dwx-biobtn" id="dwx-bio">'+ic("fp",26)+'<span>الدخول بالبصمة / الوجه</span></button>':'')
+   +'<input id="dwx-code" class="fi dwx-codein" dir="ltr" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="DW-XXXX-XXXX-XXXX" maxlength="24">'
+   +'<button class="btn gold" id="dwx-go">دخول</button>';
+  var h2=$("h2",box);if(h2)h2.insertAdjacentElement("afterend",h);else box.insertBefore(h,box.firstChild);
+  var own=D.createElement("button");own.className="btn ghost";own.id="dwx-own";own.style.marginTop="8px";own.textContent="دخول المالك بالبريد";
+  box.appendChild(own);
+  own.onclick=function(){var m=box.classList.toggle("dwx-codemode");own.textContent=m?"دخول المالك بالبريد":"الرجوع للدخول بالكود"};
+  var inp=$("#dwx-code"),go=$("#dwx-go");
+  inp.addEventListener("input",function(){var p=inp.selectionStart;inp.value=inp.value.toUpperCase();try{inp.setSelectionRange(p,p)}catch(e){}});
+  inp.addEventListener("keydown",function(e){if(e.key==="Enter")go.click()});
+  go.onclick=function(){runLogin(inp.value,false)};
+  if(NB){
+    X.native.onUnlock=function(code){if(!code){lmErr("لم يتم التحقق بالبصمة، استخدم الكود");return}runLogin(code,true)};
+    var bb=$("#dwx-bio");
+    if(bb){bb.onclick=function(){NB.unlock()};setTimeout(function(){if(!auth||!auth.currentUser)NB.unlock()},600)}
+  }
+}
+
+/* ===== نافذة عرض الكود ===== */
+function reveal(name,body,title){
+  var o=D.createElement("div");o.id="dwx-ov";
+  o.innerHTML='<div class="dwx-sheet"><div class="dwx-lock">'+ic("lock",30)+'</div><div class="dwx-h" style="text-align:center">'+esc(title||"تم إنشاء الأدمن")+'</div><div class="dwx-nm">'+esc(name)+'</div>'
+   +'<input class="fi dwx-codeout" readonly data-dwx-allow value="'+fmt(body)+'" dir="ltr">'
+   +'<div class="stat err" style="margin-top:8px">احفظ الكود الآن — لن يظهر مرة أخرى. من يملك الكود يدخل كأدمن.</div>'
+   +'<div class="acts" style="margin-top:12px"><button class="btn gold" id="dwx-rc">نسخ الكود</button><button class="btn ghost" id="dwx-rx">تم</button></div></div>';
+  D.body.appendChild(o);
+  $("#dwx-rc",o).onclick=function(){copyText(fmt(body)).then(function(){toast("تم النسخ")},function(){toast("تعذر النسخ، اكتب الكود يدويًا")})};
+  $("#dwx-rx",o).onclick=function(){o.remove()};
+}
+
+/* ===== إنشاء أدمن بكود ===== */
+async function createCodeAdmin(name,body,extra){
+  if(!fb()||!X.cfg)throw Error("تعذر تهيئة Firebase");
+  var c=await creds(body),s=firebase.initializeApp(X.cfg,"dwx"+Date.now()),uid;
+  try{
+    var r=await s.auth().createUserWithEmailAndPassword(c.email,c.pw);uid=r.user.uid;
+    await db.doc("users/"+uid).set(Object.assign({nameAr:name,nameEn:name,email:c.email,phone:"",year:1,term:1,extra:[],role:"admin",codeAdmin:true,createdBy:auth.currentUser.uid,vip:false,wallet:0,vipUntil:0,createdAt:Date.now(),lastPostAt:0,termsAt:Date.now()},extra||{}));
+    await s.auth().signOut();
+  }finally{try{await s.delete()}catch(e){}}
+  return uid;
+}
+
+/* ===== لوحة الأدمنز والأكواد (للمالك فقط) ===== */
+function isSuper(){return fb()&&auth.currentUser&&(auth.currentUser.email||"").toLowerCase()===SUPER}
+function mountTab(){
+  var at=$("#at");if(!at||$("[data-dwx-tab]",at)||!isSuper())return;
+  var b=D.createElement("button");b.className="chip";b.setAttribute("data-dwx-tab","1");b.textContent="الأدمنز";at.appendChild(b);
+  b.onclick=function(){$$("#at .chip").forEach(function(c){c.classList.remove("on")});b.classList.add("on");renderPanel()};
+}
+function renderPanel(){
+  var ab=$("#ab");if(!ab)return;
+  ab.innerHTML=
+   '<div class="dwx-card"><div class="dwx-h">كود دخول المالك</div><div class="small" style="margin-bottom:10px">ولّد كودًا لنفسك لتدخل به التطبيق. ملاحظة: تتحول كلمة مرور بريدك لتُشتق من الكود (تستعيدها بزر «نسيت كلمة المرور» عند الحاجة).</div><button class="btn gold" id="dwx-own-code">إنشاء / تغيير كود المالك</button></div>'
+   +'<div class="dwx-card"><div class="dwx-h">أداة توليد كود سري</div>'
+   +'<select id="dwx-len" class="fi dwx-sel"><option value="12">12 رمز — قوي</option><option value="16">16 رمز — أقوى</option></select>'
+   +'<input id="dwx-out" class="fi dwx-codeout" readonly data-dwx-allow dir="ltr">'
+   +'<div class="dwx-str"><i id="dwx-bar"></i></div><div class="small" id="dwx-st"></div>'
+   +'<div class="acts" style="margin-top:10px"><button class="chip" id="dwx-gen">توليد جديد</button><button class="chip gold on" id="dwx-copy">نسخ الكود</button></div></div>'
+   +'<div class="dwx-card"><div class="dwx-h">إضافة أدمن بالكود</div>'
+   +'<input id="dwx-name" class="fi dwx-sel" placeholder="اسم الأدمن" maxlength="60">'
+   +'<div class="small" style="margin-bottom:10px">يُنشأ الأدمن بالكود الظاهر أعلاه، ويدخل به فقط.</div>'
+   +'<button class="btn gold" id="dwx-add">إنشاء الأدمن</button><div id="dwx-msg"></div></div>'
+   +'<div class="lab" style="margin-top:6px">الأدمنز بالكود السري</div><div id="dwx-list"><div class="empty">…</div></div>';
+  var out=$("#dwx-out"),len=$("#dwx-len");
+  function gen(){var n=+len.value,b=genBody(n);out.value=fmt(b);var bits=Math.round(n*Math.log(31)/Math.log(2));$("#dwx-bar").style.width=Math.min(100,bits/80*100)+"%";$("#dwx-st").textContent="قوة الكود ≈ "+bits+" بت"}
+  gen();len.onchange=gen;$("#dwx-gen").onclick=gen;
+  $("#dwx-copy").onclick=function(){copyText(out.value).then(function(){toast("تم النسخ")},function(){toast("تعذر النسخ")})};
+  $("#dwx-add").onclick=async function(){
+    var name=$("#dwx-name").value.trim(),b=norm(out.value),m=$("#dwx-msg"),btn=this;
+    if(name.length<2){m.innerHTML='<div class="stat err">اكتب اسم الأدمن</div>';return}
+    btn.disabled=true;m.innerHTML="";
+    try{await createCodeAdmin(name,b);reveal(name,b);$("#dwx-name").value="";gen();loadList()}
+    catch(e){m.innerHTML='<div class="stat err">'+esc(e&&e.message||"حدث خطأ")+'</div>'}
+    btn.disabled=false;
+  };
+  $("#dwx-own-code").onclick=async function(){
+    var btn=this;
+    if(!confirm("سيُنشأ كود جديد لحسابك وتتغير كلمة مرور البريد لتصبح مشتقة منه، والكود القديم (إن وُجد) يتوقف. احفظ الكود فور ظهوره. متابعة؟"))return;
+    btn.disabled=true;
+    try{var nb=genBody(12),c=await creds(nb);await auth.currentUser.updatePassword(c.pw);await db.doc("users/"+auth.currentUser.uid).update({ownerCode:true,codeAt:Date.now()});reveal("المالك",nb,"تم إنشاء كود المالك")}
+    catch(e){toast(e&&e.code==="auth/requires-recent-login"?"سجّل الخروج ثم الدخول بالبريد وأعد المحاولة":"تعذر إنشاء الكود")}
+    btn.disabled=false;
+  };
+  loadList();
+}
+async function loadList(){
+  var box=$("#dwx-list");if(!box)return;
+  try{
+    var s=await db.collection("users").where("codeAdmin","==",true).get();
+    var L=s.docs.map(function(d){var x=d.data();x.id=d.id;return x}).sort(function(a,b){return(b.createdAt||0)-(a.createdAt||0)});
+    box.innerHTML=L.length?L.map(function(u){var on=u.role==="admin";
+      return'<div class="item">'+(u.photo?'<img class="dwx-av2" src="'+esc(u.photo)+'" alt="">':'')+'<div class="nm">'+esc(u.nameAr||"")+' <span class="dwx-bd '+(on?"on":"off")+'">'+(on?"فعّال":"موقوف")+'</span></div>'
+       +'<div class="meta">'+new Date(u.createdAt||0).toLocaleString("ar-EG")+'</div>'
+       +'<div class="acts"><button class="pl" data-dwx-t="'+esc(u.id)+'">'+(on?"إيقاف":"تفعيل")+'</button><button data-dwx-n="'+esc(u.id)+'">كود جديد</button>'+(u.photo&&!u.photoReset?'<button data-dwx-p="'+esc(u.id)+'">السماح بتغيير الصورة</button>':'')+'</div></div>'}).join(""):'<div class="empty">لا يوجد أدمنز بالكود بعد</div>';
+    $$("[data-dwx-t]",box).forEach(function(b){b.onclick=async function(){var u=L.find(function(x){return x.id===b.dataset.dwxT});b.disabled=true;try{await db.doc("users/"+u.id).update({role:u.role==="admin"?"revoked":"admin",codeAt:Date.now()});loadList()}catch(e){toast("تعذر التنفيذ");b.disabled=false}}});
+    $$("[data-dwx-p]",box).forEach(function(b){b.onclick=async function(){if(!confirm("سيُطلب من هذا الأدمن التقاط صورة جديدة عند دخوله القادم. متابعة؟"))return;b.disabled=true;try{await db.doc("users/"+b.dataset.dwxP).update({photoReset:true});toast("تم السماح بتغيير الصورة مرة واحدة");loadList()}catch(e){toast("تعذر التنفيذ");b.disabled=false}}});
+    $$("[data-dwx-n]",box).forEach(function(b){b.onclick=async function(){
+      var u=L.find(function(x){return x.id===b.dataset.dwxN});
+      if(!confirm("سيتوقف الكود القديم لـ "+u.nameAr+" ويُنشأ كود جديد. متابعة؟"))return;
+      b.disabled=true;
+      try{var nb=genBody(12);await createCodeAdmin(u.nameAr,nb,{replaces:u.id});await db.doc("users/"+u.id).update({role:"revoked",codeAt:Date.now()});reveal(u.nameAr,nb);loadList()}
+      catch(e){toast(e&&e.message||"تعذر التنفيذ");b.disabled=false}}});
+  }catch(e){box.innerHTML='<div class="stat err">تعذر تحميل القائمة (تحقق من قواعد Firestore)</div>'}
+}
+
+/* ===== الأصوات ===== */
+var SND={
+ chime:[[880,0,.18,"sine",.5],[1318,.14,.34,"sine",.5]],
+ bell:[[1568,0,.9,"sine",.4],[2349,0,.6,"sine",.2],[3136,0,.35,"sine",.1]],
+ cash:[[1175,0,.09,"triangle",.5],[1568,.09,.09,"triangle",.5],[2093,.18,.32,"triangle",.5]],
+ pop:[[520,0,.07,"sine",.6],[780,.06,.1,"sine",.5]],
+ alert:[[740,0,.16,"square",.16],[740,.24,.16,"square",.16],[988,.48,.3,"square",.16]],
+ drop:[[1568,0,.12,"sine",.5],[1047,.1,.4,"sine",.5]]
+};
+var SNAME={chime:"رنّة",bell:"جرس",cash:"كاشير",pop:"فقاعة",alert:"تنبيه",drop:"قطرة",off:"صامت"};
+var KINDS={support:{l:"رسائل الدعم",d:"chime",i:"chat",tab:"support"},pay:{l:"طلبات الدفع",d:"cash",i:"cash",tab:"pay"},group:{l:"رسائل الجروب",d:"pop",i:"pop",tab:"group"},signup:{l:"طلاب جدد",d:"bell",i:"users",tab:"users"}};
+var CFGN=(function(){var c={vol:.8,mute:0,map:{}};try{var j=JSON.parse(lsGet("dwx_notif")||"{}");if(j&&typeof j==="object"){c.vol=typeof j.vol==="number"?j.vol:.8;c.mute=j.mute?1:0;c.map=j.map||{}}}catch(e){}return c})();
+function saveCfg(){lsSet("dwx_notif",JSON.stringify(CFGN))}
+function soundOf(k){return CFGN.map[k]||KINDS[k].d}
+var AC=null;
+function actx(){if(!AC){var C=W.AudioContext||W.webkitAudioContext;if(C){try{AC=new C()}catch(e){}}}return AC}
+function play(name,vol){
+  var c=actx();if(!c||!SND[name])return;try{if(c.state==="suspended")c.resume()}catch(e){}
+  var t0=c.currentTime+.01;
+  SND[name].forEach(function(n){var o=c.createOscillator(),g=c.createGain(),s=t0+n[1],e=s+n[2];o.type=n[3]||"sine";o.frequency.value=n[0];
+    g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(Math.max(.001,(n[4]||.5)*vol),s+.015);g.gain.exponentialRampToValueAtTime(.0001,e);
+    o.connect(g);g.connect(c.destination);o.start(s);o.stop(e+.03)});
+}
+D.addEventListener("pointerdown",function(){var c=actx();if(c&&c.state==="suspended")try{c.resume()}catch(e){}},{once:true,passive:true});
+
+/* ===== إشعارات على الشاشة ===== */
+var unread=0;
+function ensureStack(){var s=$("#dwx-stack");if(!s){s=D.createElement("div");s.id="dwx-stack";D.body.appendChild(s)}return s}
+function bumpBadge(){var b=$("#dwx-badge");if(b){b.textContent=unread>99?"99+":unread;b.classList.toggle("hide",!unread)}}
+function notify(kind,title,text){
+  var K=KINDS[kind];if(!K)return;
+  unread++;bumpBadge();
+  var snd=soundOf(kind);
+  if(!CFGN.mute&&snd!=="off")play(snd,CFGN.vol);
+  var st=ensureStack(),n=D.createElement("div");n.className="dwx-n dwx-n-"+kind;
+  n.innerHTML='<div class="dwx-ni">'+ic(K.i,22)+'</div><div class="dwx-nb"><div class="dwx-nt">'+esc(title)+'</div><div class="dwx-nx">'+esc(text||"")+'</div></div><button class="dwx-nc" aria-label="إغلاق">'+ic("x",16)+'</button>';
+  function close(){n.classList.add("out");setTimeout(function(){n.remove()},260)}
+  n.onclick=function(e){if(e.target.closest(".dwx-nc")){close();return}var chip=$('[data-a="'+K.tab+'"]');if(chip)chip.click();close()};
+  st.appendChild(n);while(st.children.length>3)st.firstChild.remove();
+  setTimeout(close,6500);
+  try{if(W.DWNative&&W.DWNative.postMessage)W.DWNative.postMessage(JSON.stringify({a:"notify",id:0,title:title,body:text||"",sound:CFGN.mute?"off":snd,kind:kind,vol:CFGN.vol}))}catch(e){}
+}
+X.notify=notify;
+function listen(){
+  if(X.listening||!fb()||!auth.currentUser)return;X.listening=true;
+  function watch(q,fn){var first=true;try{q.onSnapshot(function(s){if(first){first=false;return}s.docChanges().forEach(function(ch){try{fn(ch,ch.doc.data(),ch.doc.id)}catch(e){}})},function(){})}catch(e){}}
+  watch(db.collection("support").orderBy("lastAt","desc").limit(25),function(ch,d){if((ch.type==="added"||ch.type==="modified")&&d.from==="user")notify("support",d.name||"طالب",d.last||"رسالة جديدة")});
+  watch(db.collection("payments").orderBy("createdAt","desc").limit(25),function(ch,d){if(ch.type==="added"&&d.status==="pending"){var bits=[d.name||d.nameAr||d.userName,d.amount||d.price,d.plan||d.title].filter(Boolean);notify("pay","طلب دفع جديد",bits.join(" · ")||"بانتظار المراجعة")}});
+  watch(db.collection("groups").doc("main").collection("msgs").orderBy("at","desc").limit(10),function(ch,d){if(ch.type==="added"&&!d.adm)notify("group",d.name||"الجروب",d.text||"")});
+  watch(db.collection("users").orderBy("createdAt","desc").limit(10),function(ch,d){if(ch.type==="added"&&d.role!=="admin"&&d.role!=="revoked")notify("signup","طالب جديد",d.nameAr||d.email||"")});
+}
+
+/* ===== إعدادات الإشعارات ===== */
+function openSettings(){
+  if($("#dwx-ov2"))return;unread=0;bumpBadge();
+  var o=D.createElement("div");o.id="dwx-ov2";
+  var rows=Object.keys(KINDS).map(function(k){return'<div class="dwx-sr"><span>'+esc(KINDS[k].l)+'</span><select data-k="'+k+'" class="fi dwx-sel">'+Object.keys(SNAME).map(function(s){return'<option value="'+s+'"'+(soundOf(k)===s?" selected":"")+'>'+SNAME[s]+'</option>'}).join("")+'</select><button class="chip" data-t="'+k+'">تجربة</button></div>'}).join("");
+  o.innerHTML='<div class="dwx-sheet"><button class="dwx-x" id="dwx-sx">'+ic("x",20)+'</button><div class="dwx-h">أصوات الإشعارات</div>'
+   +'<label class="dwx-sr"><span>كتم كل الأصوات</span><input type="checkbox" id="dwx-mute"'+(CFGN.mute?" checked":"")+'></label>'
+   +'<label class="dwx-sr"><span>مستوى الصوت</span><input type="range" id="dwx-vol" min="0.1" max="1" step="0.1" value="'+CFGN.vol+'"></label>'+rows+(NB?'<div class="dwx-sr"><span>الإصدار '+esc(String(NB.getVersion()))+'</span><button class="chip" id="dwx-chk">فحص التحديثات</button></div><div class="dwx-sr"><span>الدخول بالبصمة على هذا الجهاز</span><button class="chip" id="dwx-fpoff">إلغاء</button></div>':'')+'</div>';
+  D.body.appendChild(o);
+  if(NB){$("#dwx-chk",o).onclick=function(){NB.checkUpdate();toast("جارٍ الفحص…")};$("#dwx-fpoff",o).onclick=function(){NB.clearSecret();toast("تم إلغاء الدخول بالبصمة")}}
+  $("#dwx-sx",o).onclick=function(){o.remove()};
+  o.addEventListener("click",function(e){if(e.target===o)o.remove()});
+  $("#dwx-mute",o).onchange=function(){CFGN.mute=this.checked?1:0;saveCfg()};
+  $("#dwx-vol",o).oninput=function(){CFGN.vol=+this.value;saveCfg()};
+  $$("select[data-k]",o).forEach(function(s){s.onchange=function(){CFGN.map[s.dataset.k]=s.value;saveCfg();if(s.value!=="off")play(s.value,CFGN.vol)}});
+  $$("button[data-t]",o).forEach(function(b){b.onclick=function(){var s=soundOf(b.dataset.t);if(s!=="off")play(s,CFGN.vol)}});
+}
+function mountBell(){
+  if($("#dwx-bell"))return;var b=D.createElement("button");b.id="dwx-bell";b.className="hide";b.setAttribute("aria-label","إعدادات الإشعارات");
+  b.innerHTML=ic("bell",22)+'<i id="dwx-badge" class="hide">0</i>';b.onclick=openSettings;D.body.appendChild(b);
+}
+
+/* ===== حماية: منع النسخ والطباعة (الحجب الكامل للقطات من التطبيق الأصلي) ===== */
+function allowed(t){return!!(t&&t.closest&&t.closest("[data-dwx-allow]"))||X.allowCopy}
+["copy","cut","dragstart"].forEach(function(ev){D.addEventListener(ev,function(e){if(!allowed(e.target)){e.preventDefault();try{e.clipboardData&&e.clipboardData.setData("text/plain","")}catch(x){}}},true)});
+D.addEventListener("selectstart",function(e){var t=e.target&&e.target.nodeType===1?e.target:(e.target&&e.target.parentElement);if(t&&t.closest&&t.closest("input,textarea,[data-dwx-allow]"))return;e.preventDefault()},true);
+D.addEventListener("keydown",function(e){
+  var k=(e.key||"").toLowerCase();
+  if(k==="printscreen"){try{navigator.clipboard.writeText("")}catch(x){}e.preventDefault();return}
+  if((e.ctrlKey||e.metaKey)&&["p","s","u","c","x","a"].indexOf(k)>=0&&!allowed(e.target)&&!(k==="a"&&e.target.closest&&e.target.closest("input,textarea")))e.preventDefault();
+  if(e.key==="F12")e.preventDefault();
+},true);
+D.addEventListener("visibilitychange",function(){D.documentElement.classList.toggle("dwx-blur",D.hidden)});
+D.addEventListener("input",function(e){var t=e.target;if(t&&t.id==="ct"){t.style.height="auto";t.style.height=Math.min(110,t.scrollHeight)+"px"}},true);
+D.addEventListener("keydown",function(e){var t=e.target;if(t&&t.id==="ct"&&e.key==="Enter"&&!e.shiftKey&&W.matchMedia&&W.matchMedia("(pointer:fine)").matches){e.preventDefault();var s=$("#cs");if(s)s.click()}},true);
+
+
+/* ===== التحقق الأول: بصمة/وجه + صورة بروفايل ثابتة ===== */
+var gateDone=false;
+function setAvatar(p){
+  var old=$("#dwx-av");if(old)old.remove();if(!p)return;
+  var h=$("#app .hero");if(!h)return;var i=D.createElement("img");i.id="dwx-av";i.className="dwx-av";i.alt="";i.src=p;i.draggable=false;h.appendChild(i);
+}
+function gateUI(cov,html){cov.innerHTML='<div class="dwx-gc">'+html+'<button class="btn ghost" id="dwx-gout" style="margin-top:10px">تسجيل الخروج</button></div>';var o=$("#dwx-gout",cov);if(o)o.onclick=function(){auth.signOut().then(function(){location.reload()})}}
+function stepBio(cov){
+  return new Promise(function(res){
+    gateUI(cov,'<div class="dwx-lock">'+ic("fp",34)+'</div><div class="dwx-h" style="text-align:center">التحقق بالبصمة أو الوجه</div><div class="small" style="text-align:center;margin-bottom:12px">أول دخول على هذا الجهاز: أكّد هويتك ببصمة أو وجه الهاتف. بعدها تدخل بالبصمة مباشرة.</div><button class="btn gold" id="dwx-bgo">ابدأ التحقق</button><div id="dwx-bmsg"></div>');
+    X.native.onBio=function(r){if(r==="ok"||r==="na")res(r);else{var m=$("#dwx-bmsg");if(m)m.innerHTML='<div class="stat err">لم ينجح التحقق، حاول مرة أخرى</div>';var b=$("#dwx-bgo");if(b)b.disabled=false}};
+    var go=function(){var b=$("#dwx-bgo");if(b)b.disabled=true;NB.verifyBio()};
+    $("#dwx-bgo").onclick=go;setTimeout(go,400);
+  });
+}
+function stepPhoto(cov){
+  return new Promise(function(res){
+    var stream=null;
+    function stop(){if(stream){stream.getTracks().forEach(function(t){t.stop()});stream=null}}
+    function ui(){
+      gateUI(cov,'<div class="dwx-h" style="text-align:center">صورة الملف الشخصي</div><div class="small" style="text-align:center;margin-bottom:10px">التقط صورة واضحة لوجهك بإضاءة جيدة. تُحفظ كصورة بروفايل ولا يمكن تغييرها إلا بطلب من المدير الرئيسي.</div><div class="dwx-cam"><video id="dwx-v" autoplay playsinline muted></video><canvas id="dwx-c" width="360" height="360" class="hide"></canvas></div><div id="dwx-pm"></div><div class="acts" style="justify-content:center;margin-top:10px"><button class="btn gold" id="dwx-shot">التقاط الصورة</button></div>');
+      start();
+    }
+    function msg(t){var m=$("#dwx-pm");if(m)m.innerHTML=t?'<div class="stat err">'+esc(t)+'</div>':""}
+    async function start(){
+      try{
+        if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw 0;
+        stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:640},height:{ideal:640}},audio:false});
+        var v=$("#dwx-v");v.srcObject=stream;await v.play().catch(function(){});
+        $("#dwx-shot").onclick=shot;
+      }catch(e){msg("تعذر فتح الكاميرا. اسمح باستخدام الكاميرا ثم أعد المحاولة.");var b=$("#dwx-shot");b.textContent="إعادة المحاولة";b.onclick=function(){msg("");b.textContent="التقاط الصورة";start()}}
+    }
+    function shot(){
+      var v=$("#dwx-v"),c=$("#dwx-c");if(!v||!v.videoWidth){msg("الكاميرا لم تجهز بعد");return}
+      var s=Math.min(v.videoWidth,v.videoHeight),sx=(v.videoWidth-s)/2,sy=(v.videoHeight-s)/2,x=c.getContext("2d");
+      x.drawImage(v,sx,sy,s,s,0,0,360,360);
+      var d=x.getImageData(0,0,360,360).data,sum=0,n=0;for(var i=0;i<d.length;i+=160){sum+=d[i]*.3+d[i+1]*.59+d[i+2]*.11;n++}
+      if(sum/n<35){msg("الإضاءة ضعيفة، التقط الصورة في مكان أكثر إضاءة");return}
+      var url=c.toDataURL("image/jpeg",.72);
+      v.classList.add("hide");c.classList.remove("hide");msg("");
+      var sh=$("#dwx-shot");sh.textContent="اعتماد الصورة";
+      sh.onclick=function(){stop();res(url)};
+      if(!$("#dwx-retake")){var r=D.createElement("button");r.id="dwx-retake";r.className="btn ghost";r.style.marginTop="8px";r.textContent="إعادة الالتقاط";sh.parentNode.appendChild(r);r.onclick=function(){c.classList.add("hide");v.classList.remove("hide");sh.textContent="التقاط الصورة";sh.onclick=shot;r.remove()}}
+    }
+    ui();
+  });
+}
+async function gate(){
+  if(gateDone||X.gating||!fb()||!auth.currentUser)return;X.gating=true;
+  var cov=$("#dwx-gate");if(!cov){cov=D.createElement("div");cov.id="dwx-gate";D.body.appendChild(cov)}
+  cov.innerHTML='<div class="dwx-gc"><div class="dwx-spin"></div><div style="margin-top:10px">جارٍ التحقق…</div></div>';
+  var u=auth.currentUser,snap,d;
+  try{snap=await db.doc("users/"+u.uid).get();d=snap.exists?snap.data():{}}
+  catch(e){X.gating=false;gateUI(cov,'<div class="stat err">تعذر التحقق، تحقق من الاتصال</div><button class="btn gold" id="dwx-gre" style="margin-top:10px">إعادة المحاولة</button>');$("#dwx-gre").onclick=gate;return}
+  var needs=d.codeAdmin===true||d.ownerCode===true;
+  if(!needs){cov.remove();gateDone=true;X.gating=false;setAvatar(d.photo);return}
+  var bio="";
+  if(NB&&X.lastCode&&!NB.hasSecret())bio=await stepBio(cov);
+  if(!d.photo||d.photoReset===true){
+    for(;;){
+      var ph=await stepPhoto(cov);
+      try{await db.doc("users/"+u.uid).update({photo:ph,photoAt:Date.now(),photoLocked:true,photoReset:false});d.photo=ph;break}
+      catch(e){gateUI(cov,'<div class="stat err">تعذر حفظ الصورة (تحقق من قواعد Firestore)</div><button class="btn gold" id="dwx-gre" style="margin-top:10px">إعادة المحاولة</button>');await new Promise(function(r){$("#dwx-gre").onclick=r})}
+    }
+  }
+  if(bio==="ok"&&X.lastCode)NB.saveSecret(X.lastCode);
+  cov.remove();gateDone=true;X.gating=false;setAvatar(d.photo);
+}
+
+/* ===== التحديث من GitHub + رقم الإصدار ===== */
+function initUpdate(){
+  if(!NB)return;
+  D.documentElement.classList.add("dwx-native");
+  var v=D.createElement("div");v.id="dwx-ver";v.textContent="v"+NB.getVersion();D.body.appendChild(v);
+  var bar=D.createElement("div");bar.id="dwx-upd";bar.className="hide";
+  bar.innerHTML='<div class="dwx-ui">'+ic("up",22)+'</div><div class="dwx-ub"><div class="dwx-ut" id="dwx-ut">تحديث جديد</div><div class="dwx-uprog hide" id="dwx-up"><i></i></div></div><button class="chip gold on" id="dwx-ugo">تحديث الآن</button>';
+  D.body.appendChild(bar);
+  var go=$("#dwx-ugo");
+  go.onclick=function(){go.disabled=true;$("#dwx-up").classList.remove("hide");$("#dwx-ut").textContent="جارٍ التنزيل…";NB.installUpdate()};
+  X.native.onUpdate=function(o){if(o&&o.has){$("#dwx-ut").textContent="تحديث جديد متاح — الإصدار "+o.name;bar.classList.remove("hide")}else bar.classList.add("hide")};
+  X.native.onProgress=function(p){var i=$("#dwx-up i");if(i)i.style.width=p+"%";$("#dwx-ut").textContent="جارٍ التنزيل… "+p+"%"};
+  X.native.onInstall=function(r){
+    go.disabled=false;
+    if(r==="perm"){$("#dwx-up").classList.add("hide");$("#dwx-ut").textContent="اسمح بالتثبيت من هذا التطبيق ثم اضغط تحديث";return}
+    if(r===true){$("#dwx-ut").textContent="افتح المثبّت وأكمل التحديث"}
+    else{$("#dwx-up").classList.add("hide");$("#dwx-ut").textContent="تعذر التحديث، حاول مرة أخرى"}
+  };
+  NB.checkUpdate();
+  setInterval(function(){NB.checkUpdate()},20*60*1000);
+  D.addEventListener("visibilitychange",function(){if(!D.hidden)NB.checkUpdate()});
+}
+
+/* ===== تشغيل ===== */
+function boot(){
+  initLogin();mountBell();initUpdate();
+  var body=$("#body");if(body)new MutationObserver(mountTab).observe(body,{childList:true});
+  var app=$("#app");
+  function chk(){var vis=app&&!app.classList.contains("hide");var b=$("#dwx-bell");if(b)b.classList.toggle("hide",!vis);if(vis){mountTab();listen();gate()}}
+  if(app)new MutationObserver(chk).observe(app,{attributes:true,attributeFilter:["class"]});chk();
+}
+if(D.readyState==="loading")D.addEventListener("DOMContentLoaded",boot);else boot();
+})();
+</script>
+</body></html>
