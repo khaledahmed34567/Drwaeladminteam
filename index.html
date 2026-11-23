@@ -137,13 +137,29 @@ function denied(u) {
   root.innerHTML = `<div class="login"><div class="box"><span class="logo"></span><h1 style="margin:0">لا توجد صلاحية</h1><p class="muted">هذا الحساب ليس أدمن. لإضافته: افتح Firestore وأنشئ مستندًا في مجموعة <b class="mono">admins</b> رقمه (Document ID) هو المعرّف التالي، وأي حقل فيه، ثم أعد تحميل الصفحة.</p><div class="mono card" style="word-break:break-all;user-select:all">${esc(u.uid)}</div><button class="btn" id="lo">تسجيل الخروج</button></div></div>`;
   $('#lo').onclick = () => auth.signOut();
 }
+/* ===== دخول تلقائي: اكتب بريد حساب الأدمن وكلمة مروره هنا فيختفي نموذج الدخول تمامًا.
+   اتركهما فارغين لو عايز نموذج الدخول يرجع. ===== */
+const AUTO_LOGIN = { email: '', password: '' };
+const AUTO = !!(AUTO_LOGIN.email && AUTO_LOGIN.password);
 if (!auth) { root.innerHTML = '<div class="login"><div class="box">تعذر تحميل Firebase. تحقق من الاتصال بالإنترنت.</div></div>'; }
-else { loginView(); auth.onAuthStateChanged(async u => { if (!u) return loginView(); try { const s = await db.collection('admins').doc(u.uid).get(); if (!s.exists) return denied(u); } catch (e) { return denied(u); } shell(); }); }
+else {
+  if (AUTO) root.innerHTML = '<div class="login"><div class="box muted">جارٍ الدخول…</div></div>'; else loginView();
+  auth.onAuthStateChanged(async u => {
+    if (!u) {
+      if (!AUTO) return loginView();
+      try { await auth.signInWithEmailAndPassword(AUTO_LOGIN.email, AUTO_LOGIN.password); }
+      catch (x) { loginView('فشل الدخول التلقائي، راجع البريد وكلمة المرور داخل الملف.'); }
+      return;
+    }
+    try { const s = await db.collection('admins').doc(u.uid).get(); if (!s.exists) return denied(u); } catch (e) { return denied(u); }
+    shell();
+  });
+}
 
 /* ---------- shell ---------- */
 function shell() {
-  root.innerHTML = `<div class="shell"><nav class="side"><span class="logo" style="margin:6px 14px 14px"></span>${TABS.map(([k, n]) => `<a href="#${k}" data-tab="${k}">${n}</a>`).join('')}<a href="#" id="out" style="margin-top:12px;color:var(--bad)">تسجيل الخروج</a></nav><main class="main" id="main"></main></div>`;
-  $('#out').onclick = e => { e.preventDefault(); auth.signOut(); };
+  root.innerHTML = `<div class="shell"><nav class="side"><span class="logo" style="margin:6px 14px 14px"></span>${TABS.map(([k, n]) => `<a href="#${k}" data-tab="${k}">${n}</a>`).join('')}${AUTO ? '' : '<a href="#" id="out" style="margin-top:12px;color:var(--bad)">تسجيل الخروج</a>'}</nav><main class="main" id="main"></main></div>`;
+  if ($('#out')) $('#out').onclick = e => { e.preventDefault(); auth.signOut(); };
   addEventListener('hashchange', route); route();
 }
 function route() { ST.tab = location.hash.slice(1) || 'dash'; ST.cur = null; $$('[data-tab]').forEach(a => a.classList.toggle('on', a.dataset.tab === ST.tab)); (VIEWS[ST.tab] || VIEWS.dash)(); }
@@ -282,7 +298,7 @@ function cleanItem(kind, o) {
           if (s.x && blank(s.x)) s.x = null;
           if (s.type === 'choose') { if (!s.q.ar || !s.q.en) err.push(w + 'السؤال بالعربية والإنجليزية.'); if ((s.o || []).length < 2) err.push(w + 'خياران على الأقل.'); if (!(s.a >= 0 && s.a < (s.o || []).length)) err.push(w + 'رقم الإجابة الصحيحة خارج الخيارات.'); }
           else if (s.type === 'complete') { if (!s.q.ar || !s.q.en || !String(s.q.ar).includes('___') || !String(s.q.en).includes('___')) err.push(w + 'السؤال يحتاج ___ في النسختين.'); if (!(s.ans || []).length) err.push(w + 'أدخل إجابة مقبولة واحدة على الأقل.'); }
-          else if (['video', 'audio', 'pdf'].includes(s.type)) { if (!/^https:\/\//.test(s.src || '')) err.push(w + 'الرابط يجب أن يبدأ بـ https://'); if (s.note && blank(s.note)) delete s.note; if (s.body && blank(s.body)) delete s.body; }
+          else if (['video', 'audio', 'pdf'].includes(s.type)) { s.src = String(s.src || '').trim(); if (!/^https:\/\//.test(s.src)) err.push(w + 'الرابط يجب أن يبدأ بـ https://'); if (s.note && blank(s.note)) delete s.note; if (s.body && blank(s.body)) delete s.body; }
           else if (s.type === 'text' || s.type === 'article') { if (blank(s.body.ar) && blank(s.body.en)) err.push(w + 'المحتوى فارغ.'); } }); }
     }));
     if (!o.modules.some(m => m.lessons.length)) err.push('أضف محاضرة واحدة على الأقل.');
