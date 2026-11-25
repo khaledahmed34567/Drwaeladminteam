@@ -41,6 +41,7 @@ table{width:100%;border-collapse:collapse;font-size:.88rem}th,td{padding:10px 8p
 .toast{position:fixed;inset-inline:0;bottom:20px;margin-inline:auto;width:max-content;max-width:90vw;background:var(--fg);color:var(--bg);padding:10px 20px;border-radius:999px;z-index:50}
 img.thumb{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
 .sticky{position:sticky;bottom:0;background:var(--bg);padding:12px 0;border-top:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap;z-index:5}
+.orow{display:grid;grid-template-columns:auto 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:8px}.orad{display:flex;gap:6px;align-items:center;font-size:.85rem;white-space:nowrap;cursor:pointer;padding:6px 10px;border:1px solid var(--line);border-radius:10px}.orad:has(input:checked){background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}.orad input{accent-color:var(--accent-ink)}@media(max-width:700px){.orow{grid-template-columns:auto 1fr auto}.orow input[dir=ltr]{grid-column:2/4}}
 </style>
 </head>
 <body>
@@ -65,7 +66,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
 const toast = m => { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); };
 const colGet = async n => { const s = await db.collection(n).get(), a = []; s.forEach(d => a.push({ ...d.data(), id: d.id })); return a; };
 const ST = { tab: 'dash', cache: {}, cur: null, open: new Set(), filter: 'all', q: '' };
-const TABS = [['dash', 'الرئيسية'], ['orders', 'الطلبات والمدفوعات'], ['messages', 'الرسائل والطلبات'], ['users', 'المستخدمون'], ['news', 'النشرة البريدية'], ['coupons', 'أكواد الخصم'], ['certs', 'الشهادات'], ['courses', 'الدورات'], ['tracks', 'المسارات'], ['posts', 'المقالات'], ['apps', 'التطبيقات'], ['settings', 'الباقات والإعدادات'], ['media', 'رفع الصور']];
+const TABS = [['dash', 'الرئيسية'], ['orders', 'الطلبات والمدفوعات'], ['messages', 'الرسائل والطلبات'], ['users', 'المستخدمون'], ['news', 'النشرة البريدية'], ['coupons', 'أكواد الخصم'], ['paylinks', 'روابط الدفع'], ['engage', 'التفاعل والإشعارات'], ['certs', 'الشهادات'], ['files', 'الملفات المرفوعة'], ['aid', 'نساعد بعض'], ['courses', 'الدورات'], ['tracks', 'المسارات'], ['posts', 'المقالات'], ['apps', 'التطبيقات'], ['settings', 'الباقات والإعدادات'], ['media', 'رفع الصور']];
 
 /* ---------- text <-> blocks ---------- */
 function textToBlocks(t) {
@@ -106,7 +107,8 @@ function F(label, path, o = {}) {
   if (o.sel) el = `<select id="${id}" data-p="${path}" data-t="${o.cv || 'text'}">${o.sel.map(([k, n]) => `<option value="${esc(k)}" ${String(val) === String(k) ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>`;
   else if (t === 'lines' || t === 'blocks' || t === 'opts' || o.area) el = `<textarea id="${id}" data-p="${path}" data-t="${t}" ${o.dir ? 'dir="' + o.dir + '"' : ''} ${o.rows ? 'style="min-height:' + o.rows * 28 + 'px"' : ''}>${esc(val)}</textarea>`;
   else el = `<input id="${id}" data-p="${path}" ${o.off ? 'data-off="1"' : ''} data-t="${t}" type="${t === 'num' ? 'number' : 'text'}" value="${esc(val)}" ${o.dir ? 'dir="' + o.dir + '"' : ''} ${o.ph ? 'placeholder="' + esc(o.ph) + '"' : ''} ${o.step ? 'step="' + o.step + '"' : ''}>`;
-  const img = t === 'blocks' ? `<button class="btn s" type="button" data-act="imgIns" data-for="${id}">رفع صورة وإدراجها</button>` : '';
+  const upb = o.up ? `<div class="row" style="gap:6px"><button class="btn s" type="button" data-act="fldUp" data-for="${id}" data-k="${o.up}">${o.up === 'img' ? 'رفع صورة' : 'رفع ملف إلى قاعدة البيانات'}</button>${o.up === 'img' ? '' : `<span class="hint" style="margin:0">حتى ${o.up === 'pdf' ? '30' : '60'}MB — للأكبر استخدم رابطًا.</span>`}</div>` : '';
+  const img = upb + (t === 'blocks' ? `<button class="btn s" type="button" data-act="imgIns" data-for="${id}">رفع صورة وإدراجها</button>` : '');
   return `<div class="f"><label for="${id}">${label}</label>${el}${img}${o.hint ? `<div class="hint">${o.hint}</div>` : ''}</div>`;
 }
 const FB = (label, path, o = {}) => `<div class="g2">${F(label + ' (عربي)', path + '.ar', { ...o, dir: 'rtl' })}${F(label + ' (English)', path + '.en', { ...o, dir: 'ltr' })}</div>`;
@@ -175,7 +177,7 @@ const VIEWS = {
   async messages() {
     busy(); const m = await colGet('messages'); m.sort((a, b) => ms(b.at) - ms(a.at));
     const lab = { services: 'الخدمات', projectType: 'نوع المشروع', langs: 'اللغات', platforms: 'المنصات', budget: 'الميزانية', timeline: 'الموعد', site: 'الموقع الحالي', name: 'الاسم', email: 'البريد', phone: 'الهاتف', org: 'الجهة', city: 'المحافظة', how: 'كيف عرفنا', message: 'التفاصيل', role: 'الدور', link: 'الرابط' };
-    main(`<h1>الرسائل والطلبات</h1>${m.map(x => `<div class="card"><div class="row"><b>${x.type === 'career' ? 'طلب انضمام' : 'طلب عرض سعر'}</b><span class="tag ${x.handled ? 'ok' : 'gold'}">${x.handled ? 'تمت المعالجة' : 'جديد'}</span><span class="muted">${esc(x.name || '')} · ${fdate(x.at)}</span><span class="sp"></span><button class="btn s" data-act="mdone" data-id="${x.id}" data-v="${x.handled ? '' : '1'}">${x.handled ? 'إعادة فتح' : 'تمت المعالجة'}</button><button class="btn s d" data-act="mdel" data-id="${x.id}">حذف</button></div><table style="margin-top:10px">${Object.entries(lab).filter(([k]) => x[k] && (!Array.isArray(x[k]) || x[k].length)).map(([k, n]) => `<tr><th style="width:130px">${n}</th><td style="white-space:pre-wrap">${esc(Array.isArray(x[k]) ? x[k].join('، ') : x[k])}</td></tr>`).join('')}</table></div>`).join('') || '<p class="muted">لا توجد رسائل.</p>'}`);
+    main(`<h1>الرسائل والطلبات</h1>${m.map(x => `<div class="card"><div class="row"><b>${x.type === 'career' ? 'طلب انضمام' : 'طلب عرض سعر'}</b><span class="tag ${x.handled ? 'ok' : 'gold'}">${x.handled ? 'تمت المعالجة' : 'جديد'}</span><span class="muted">${esc(x.name || '')} · ${fdate(x.at)}</span><span class="sp"></span><button class="btn s" data-act="mdone" data-id="${x.id}" data-v="${x.handled ? '' : '1'}">${x.handled ? 'إعادة فتح' : 'تمت المعالجة'}</button><button class="btn s" data-act="mreply" data-id="${x.id}">${x.reply ? 'تعديل الرد' : 'رد على العميل'}</button><button class="btn s d" data-act="mdel" data-id="${x.id}">حذف</button></div>${x.reply ? `<p class="muted" style="white-space:pre-wrap">ردّك: ${esc(x.reply)}</p>` : ''}<table style="margin-top:10px">${Object.entries(lab).filter(([k]) => x[k] && (!Array.isArray(x[k]) || x[k].length)).map(([k, n]) => `<tr><th style="width:130px">${n}</th><td style="white-space:pre-wrap">${esc(Array.isArray(x[k]) ? x[k].join('، ') : x[k])}</td></tr>`).join('')}</table></div>`).join('') || '<p class="muted">لا توجد رسائل.</p>'}`);
   },
   async users() {
     busy(); const u = await colGet('users'); u.sort((a, b) => ms(b.created) - ms(a.created)); ST.cache.users = u;
@@ -192,6 +194,23 @@ const VIEWS = {
   tracks: () => listView('tracks', 'المسارات', 'content_tracks', 'tracks', x => `${esc(x.t ? x.t.ar : x.id)} <span class="muted mono">${esc(x.id)}</span>`, x => (x.courses || []).join('، ')),
   posts: () => listView('posts', 'المقالات', 'content_posts', 'posts', x => `${esc(x.t ? x.t.ar : x.id)} <span class="muted mono">${esc(x.id)}</span>`, x => esc(x.date || '')),
   apps: () => listView('apps', 'التطبيقات', 'content_apps', 'apps', x => `${esc(x.name ? x.name.ar : x.id)} <span class="muted mono">${esc(x.id)}</span>`, x => esc(x.version || '')),
+  async paylinks() {
+    busy(); const c = await colGet('paylinks').catch(() => []); c.sort((a, b) => ms(b.at) - ms(a.at)); const base = location.origin + location.pathname.replace(/admin\.html$/, '');
+    main(`<h1>روابط الدفع (${c.length})</h1><div class="card"><h2>رابط جديد</h2><div class="g2"><div class="f"><label>العنوان (عربي)</label><input id="pl-ar"></div><div class="f"><label>العنوان (إنجليزي)</label><input id="pl-en" dir="ltr"></div><div class="f"><label>المبلغ (جنيه)</label><input id="pl-amt" type="number" min="1"></div><div class="f"><label>ملاحظة (اختياري)</label><input id="pl-note"></div></div><div class="sticky"><button class="btn p" data-act="plAdd">إنشاء الرابط</button></div></div>
+    <div class="card tw"><table><thead><tr><th>الكود</th><th>العنوان</th><th>المبلغ</th><th>الحالة</th><th></th></tr></thead><tbody>${c.map(x => `<tr><td class="mono">${esc(x.id)}</td><td>${esc(x.title && x.title.ar || '')}</td><td>${x.amount} ج.م</td><td><span class="tag ${x.active ? 'ok' : 'bad'}">${x.active ? 'فعّال' : 'موقوف'}</span></td><td><button class="btn s" data-act="plCopy" data-v="${esc(base + 'index.html#pay-' + x.id)}">نسخ الرابط</button> <button class="btn s" data-act="plTog" data-id="${esc(x.id)}" data-v="${x.active ? '' : '1'}">${x.active ? 'إيقاف' : 'تفعيل'}</button> <button class="btn s d" data-act="plDel" data-id="${esc(x.id)}">حذف</button></td></tr>`).join('') || '<tr><td colspan=5 class="muted">لا توجد روابط.</td></tr>'}</tbody></table></div>`);
+  },
+  async engage() {
+    busy(); const g = n => colGet(n).catch(() => []), [nt, ts, cm, qa, rv] = await Promise.all([g('notices'), g('testimonials'), g('comments'), g('qa'), g('reviews')]); const so = (a) => a.sort((x, y) => ms(y.at) - ms(x.at));
+    const row = (tag, x, body, btns) => `<div class="card"><div class="row"><span class="tag ${x.status === 'approved' || x.status === 'answered' || x.on ? 'ok' : 'gold'}">${tag}</span><b>${esc(x.name || '')}</b><span class="muted">${fdate(x.at)}</span><span class="sp"></span>${btns}</div><p style="white-space:pre-wrap;margin:8px 0 0">${body}</p></div>`;
+    main(`<h1>التفاعل والإشعارات</h1>
+    <div class="card"><h2>إشعار جديد (يظهر في جرس الموقع)</h2><div class="g2"><div class="f"><label>النص (عربي)</label><input id="nt-ar"></div><div class="f"><label>النص (إنجليزي)</label><input id="nt-en" dir="ltr"></div><div class="f"><label>رابط (اختياري، https أو #صفحة)</label><input id="nt-link" dir="ltr"></div></div><div class="sticky"><button class="btn p" data-act="ntAdd">نشر الإشعار</button></div></div>
+    ${so(nt).map(x => row(x.on ? 'منشور' : 'مخفي', x, esc(x.t && x.t.ar || ''), `<button class="btn s" data-act="colTog" data-c="notices" data-id="${x.id}" data-v="${x.on ? '' : '1'}">${x.on ? 'إخفاء' : 'نشر'}</button><button class="btn s d" data-act="colDel" data-c="notices" data-id="${x.id}">حذف</button>`)).join('')}
+    <div class="card"><h2>رأي عميل جديد (يظهر في الصفحة الرئيسية)</h2><div class="g2"><div class="f"><label>الاسم</label><input id="ts-name"></div><div class="f"><label>الصفة</label><input id="ts-role"></div><div class="f"><label>التقييم (1-5)</label><input id="ts-rate" type="number" min="1" max="5" value="5"></div><div class="f"><label>النص</label><textarea id="ts-text" rows="2"></textarea></div></div><div class="sticky"><button class="btn p" data-act="tsAdd">إضافة</button></div></div>
+    ${so(ts).map(x => row(x.on ? 'منشور' : 'مخفي', x, esc(x.text && x.text.ar || ''), `<button class="btn s" data-act="colTog" data-c="testimonials" data-id="${x.id}" data-v="${x.on ? '' : '1'}">${x.on ? 'إخفاء' : 'نشر'}</button><button class="btn s d" data-act="colDel" data-c="testimonials" data-id="${x.id}">حذف</button>`)).join('')}
+    <h2>تعليقات المقالات (${cm.filter(x => x.status === 'pending').length} بانتظار المراجعة)</h2>${so(cm).map(x => row(x.status === 'approved' ? 'معتمد' : 'بانتظار المراجعة', x, esc(x.text) + `<br><span class="muted mono">مقال: ${esc(x.postId)}</span>`, `<button class="btn s" data-act="modSet" data-c="comments" data-id="${x.id}" data-v="${x.status === 'approved' ? 'pending' : 'approved'}">${x.status === 'approved' ? 'إخفاء' : 'اعتماد'}</button><button class="btn s d" data-act="colDel" data-c="comments" data-id="${x.id}">حذف</button>`)).join('') || '<p class="muted">لا توجد تعليقات.</p>'}
+    <h2>أسئلة الطلاب (${qa.filter(x => x.status === 'open').length} بلا رد)</h2>${so(qa).map(x => row(x.status === 'answered' ? 'تمت الإجابة' : 'بانتظار الرد', x, esc(x.q) + `<br><span class="muted mono">${esc(x.key)}</span>` + (x.answer ? `<br><b>الرد:</b> ${esc(x.answer)}` : ''), `<button class="btn s" data-act="qaAns" data-id="${x.id}">${x.answer ? 'تعديل الرد' : 'إجابة'}</button><button class="btn s d" data-act="colDel" data-c="qa" data-id="${x.id}">حذف</button>`)).join('') || '<p class="muted">لا توجد أسئلة.</p>'}
+    <h2>تقييمات الدورات (${rv.filter(x => x.status === 'pending').length} بانتظار المراجعة)</h2>${so(rv).map(x => row(x.status === 'approved' ? 'معتمد' : 'بانتظار المراجعة', x, '★'.repeat(+x.rating || 0) + ' ' + esc(x.text || '') + `<br><span class="muted mono">${esc(x.courseId)}</span>`, `<button class="btn s" data-act="modSet" data-c="reviews" data-id="${x.id}" data-v="${x.status === 'approved' ? 'pending' : 'approved'}">${x.status === 'approved' ? 'إخفاء' : 'اعتماد'}</button><button class="btn s d" data-act="colDel" data-c="reviews" data-id="${x.id}">حذف</button>`)).join('') || '<p class="muted">لا توجد تقييمات.</p>'}`);
+  },
   async coupons() {
     busy(); const [c, o] = await Promise.all([colGet('coupons').catch(() => []), colGet('orders').catch(() => [])]); c.sort((a, b) => a.id.localeCompare(b.id));
     const use = {}; o.forEach(x => { if (x.coupon && x.status !== 'rejected') use[x.coupon] = (use[x.coupon] || 0) + 1; });
@@ -205,15 +224,34 @@ const VIEWS = {
     <div class="card tw"><table><thead><tr><th>الكود</th><th>الخصم</th><th>النطاق</th><th>الانتهاء</th><th>الاستخدام</th><th>الحالة</th><th></th></tr></thead><tbody>${c.map(x => `<tr><td class="mono">${esc(x.id)}</td><td>${x.percent ? x.percent + '%' : (x.amount || 0) + ' ج.م'}</td><td>${esc(x.scope || 'all')}</td><td>${x.expires ? fdate(x.expires) : '—'}</td><td>${use[x.id] || 0}</td><td><span class="tag ${x.active ? 'ok' : 'bad'}">${x.active ? 'فعّال' : 'موقوف'}</span></td><td><button class="btn s" data-act="cpTog" data-id="${esc(x.id)}" data-v="${x.active ? '' : '1'}">${x.active ? 'إيقاف' : 'تفعيل'}</button> <button class="btn s d" data-act="cpDel" data-id="${esc(x.id)}">حذف</button></td></tr>`).join('') || '<tr><td colspan="7" class="muted">لا توجد أكواد.</td></tr>'}</tbody></table></div>`);
   },
   async certs() {
-    busy(); const c = await colGet('certs').catch(() => []); c.sort((a, b) => ms(b.at) - ms(a.at));
-    main(`<h1>الشهادات (${c.length})</h1><div class="card tw"><table><thead><tr><th>الكود</th><th>الاسم</th><th>الكورس</th><th>التاريخ</th><th>الحالة</th><th></th></tr></thead><tbody>${c.map(x => `<tr><td class="mono">${esc(x.id)}</td><td>${esc(x.name || '')}<br><span class="muted mono">${esc(x.sid || '')}</span></td><td>${esc(x.courseAr || x.courseId)}</td><td>${fdate(x.at)}</td><td><span class="tag ${x.revoked ? 'bad' : 'ok'}">${x.revoked ? 'ملغاة' : 'صالحة'}</span></td><td><button class="btn s" data-act="certTog" data-id="${esc(x.id)}" data-v="${x.revoked ? '' : '1'}">${x.revoked ? 'استعادة' : 'إلغاء'}</button></td></tr>`).join('') || '<tr><td colspan="6" class="muted">لا توجد شهادات بعد.</td></tr>'}</tbody></table></div>`);
+    busy(); const [c, us, rc, st] = await Promise.all([colGet('certs').catch(() => []), colGet('users').catch(() => []), colGet('content_courses').catch(() => []), db.collection('settings').doc('site').get().catch(() => null)]);
+    c.sort((a, b) => ms(b.at) - ms(a.at)); ST.cache.certs = c; ST.cache.users = us; const sg = st && st.exists ? (st.data().signature || {}) : {}; ST.cache.sig = sg;
+    const hid = new Set(rc.filter(x => x.hidden).map(x => x.id)), courses = [...BUILTIN.courses.filter(x => x.status !== 'soon' && !hid.has(x.id) && !rc.some(r => r.id === x.id)), ...rc.filter(x => !x.hidden)]; ST.cache.ccourses = courses;
+    const stat = x => x.revoked || x.status === 'revoked' ? ['bad', 'ملغاة'] : x.status === 'approved' ? ['ok', 'معتمدة'] : x.status === 'rejected' ? ['bad', 'مرفوضة'] : ['gold', 'بانتظار الاعتماد'];
+    const pend = c.filter(x => !['approved', 'revoked', 'rejected'].includes(x.status) && !x.revoked), rest = c.filter(x => !pend.includes(x));
+    const rowf = x => { const [k, n] = stat(x); const act = pend.includes(x) ? `<button class="btn s p" data-act="certOk" data-id="${esc(x.id)}">اعتماد (الكورس منتهي)</button> <button class="btn s d" data-act="certNo" data-id="${esc(x.id)}">رفض</button>` : (x.revoked || x.status === 'revoked') ? `<button class="btn s" data-act="certOk" data-id="${esc(x.id)}">استعادة</button>` : x.status === 'approved' ? `<button class="btn s d" data-act="certRev" data-id="${esc(x.id)}">إلغاء</button>` : ''; return `<tr><td class="mono">${esc(x.id)}</td><td>${esc(x.name || '')}<br><span class="muted mono">${esc(x.sid || '')}</span></td><td>${esc(x.courseAr || x.courseId)}</td><td>${fdate(x.at)}</td><td><span class="tag ${k}">${n}</span></td><td>${act}</td></tr>`; };
+    const tbl = (h, rows, e) => `<div class="card tw"><h2 style="margin:0 0 8px">${h}</h2><table><thead><tr><th>الكود</th><th>الاسم</th><th>الكورس</th><th>التاريخ</th><th>الحالة</th><th></th></tr></thead><tbody>${rows.map(rowf).join('') || `<tr><td colspan="6" class="muted">${e}</td></tr>`}</tbody></table></div>`;
+    main(`<h1>الشهادات (${c.length})</h1>${sg.img && sg.name ? '' : '<div class="card" style="border-color:var(--bad)"><b>لا يوجد توقيع للمدير.</b> ارفعه من «الباقات والإعدادات» قبل اعتماد أي شهادة.</div>'}
+    ${tbl('طلبات تنتظر اعتماد الفريق (' + pend.length + ')', pend, 'لا توجد طلبات.')}
+    <div class="card"><h2>إصدار شهادة مباشرة (إنهاء الكورس لمستخدم)</h2><div class="g2"><div class="f"><label>المستخدم</label><select id="ci-u">${us.map(u => `<option value="${esc(u.id)}">${esc((u.name || '') + ' — ' + (u.sid || u.email || ''))}</option>`).join('')}</select></div><div class="f"><label>الكورس</label><select id="ci-c">${courses.map(x => `<option value="${esc(x.id)}">${esc(x.t ? x.t.ar : x.id)}</option>`).join('')}</select></div></div><div class="sticky"><button class="btn p" data-act="certIssue">إصدار واعتماد</button></div></div>
+    ${tbl('كل الشهادات', rest, 'لا توجد شهادات.')}`);
+  },
+  async files() {
+    busy(); const f = await colGet('files').catch(() => []); f.sort((a, b) => ms(b.at) - ms(a.at));
+    main(`<h1>الملفات المرفوعة (${f.length})</h1><div class="card"><p class="muted" style="margin-top:0">ارفع من داخل محرر الدورة (حقل الفيديو/الصوت/PDF). هنا تجد قائمة الملفات وتحذف غير المستخدم منها. المرجع الذي يُكتب في الحقل: <span class="mono">fs:المعرّف</span></p></div><div class="card tw"><table><thead><tr><th>الاسم</th><th>المعرّف</th><th>النوع</th><th>الحجم</th><th>التاريخ</th><th>الحالة</th><th></th></tr></thead><tbody>${f.map(x => `<tr><td>${esc(x.name)}</td><td class="mono">fs:${esc(x.id)}</td><td>${esc(x.kind)}</td><td>${(x.size / 1048576).toFixed(1)}MB</td><td>${fdate(x.at)}</td><td><span class="tag ${x.status === 'ready' ? 'ok' : 'gold'}">${x.status === 'ready' ? 'جاهز' : 'غير مكتمل'}</span></td><td><button class="btn s" data-act="fsCopy" data-v="fs:${esc(x.id)}">نسخ</button> <button class="btn s d" data-act="fsDel" data-id="${esc(x.id)}">حذف</button></td></tr>`).join('') || '<tr><td colspan="7" class="muted">لا توجد ملفات.</td></tr>'}</tbody></table></div>`);
+  },
+  async aid() {
+    busy(); let a = []; try { const q = await db.collection('aid').orderBy('at', 'desc').limit(100).get(); q.forEach(d => a.push({ id: d.id, ...d.data() })); } catch (e) { }
+    ST.cache.aid = a; const lab = { new: ['gold', 'جديد'], approved: ['ok', 'مقبول'], rejected: ['bad', 'مرفوض'] };
+    main(`<h1>طلبات «نساعد بعض» (${a.length})</h1><div class="card tw"><table><thead><tr><th>الاسم</th><th>الهاتف / البريد</th><th>المطلوب</th><th>التاريخ</th><th>الحالة</th><th></th></tr></thead><tbody>${a.map(x => { const [k, n] = lab[x.status] || lab.new; return `<tr><td>${esc(x.name)}${x.accountUid ? ' <span class="tag ok">له حساب</span>' : ''}</td><td class="mono" dir="ltr">${esc(x.phone || '')}<br>${esc(x.email || '')}</td><td>${esc((x.want || []).join('، '))}</td><td>${fdate(x.at)}</td><td><span class="tag ${k}">${n}</span></td><td><button class="btn s p" data-act="aidOpen" data-id="${esc(x.id)}">فتح</button></td></tr>`; }).join('') || '<tr><td colspan="6" class="muted">لا توجد طلبات.</td></tr>'}</tbody></table></div>`);
   },
   async settings() {
     busy(); let s = {}; try { const d = await db.collection('settings').doc('site').get(); if (d.exists) s = d.data(); } catch (e) { }
-    ST.cur = { kind: 'settings', obj: { plans: { plus: { price: 800 }, pro: { price: 1200 }, ...(s.plans || {}) }, social: s.social || {}, contact: s.contact || {}, announce: { on: false, ar: '', en: '', link: '', label: '', labelEn: '', ...(s.announce || {}) } } };
+    ST.cur = { kind: 'settings', obj: { plans: { plus: { price: 800 }, pro: { price: 1200 }, ...(s.plans || {}) }, social: s.social || {}, contact: s.contact || {}, announce: { on: false, ar: '', en: '', link: '', label: '', labelEn: '', ...(s.announce || {}) }, signature: { img: '', name: '', title: '', ...(s.signature || {}) } } };
     main(`<h1>الباقات والإعدادات</h1><div class="card"><h2>أسعار الباقات (جنيه)</h2><div class="g2">${F('Plus (3 شهور)', 'plans.plus.price', { t: 'num' })}${F('Pro (6 شهور)', 'plans.pro.price', { t: 'num' })}</div></div>
     <div class="card"><h2>شريط الإعلان أعلى الموقع</h2><div class="g2">${F('الحالة', 'announce.on', { sel: [['false', 'مخفي'], ['true', 'ظاهر']], cv: 'bool' })}${F('الرابط (https أو #صفحة)', 'announce.link', { dir: 'ltr', ph: '#learning' })}</div><div class="g2" style="margin-top:12px">${F('النص (عربي)', 'announce.ar', { dir: 'rtl' })}${F('Text (English)', 'announce.en', { dir: 'ltr' })}${F('نص الزر (عربي)', 'announce.label', { dir: 'rtl' })}${F('Button (English)', 'announce.labelEn', { dir: 'ltr' })}</div></div>
-    <div class="card"><h2>بيانات التواصل الظاهرة في الموقع</h2><div class="g2">${F('الهاتف', 'contact.phone', { dir: 'ltr' })}${F('واتساب', 'contact.whatsapp', { dir: 'ltr' })}${F('البريد', 'contact.email', { dir: 'ltr' })}</div><div class="g2" style="margin-top:12px">${FB('العنوان', 'contact.address')}</div></div>
+    <div class="card"><h2>توقيع المدير على الشهادات</h2><p class="muted" style="margin-top:0">يُنسخ التوقيع على كل شهادة وقت اعتمادها، فتغيير التوقيع لاحقًا لا يغيّر الشهادات القديمة.</p><div class="g2">${F('اسم المدير', 'signature.name', { dir: 'rtl' })}${F('المسمّى الوظيفي', 'signature.title', { dir: 'rtl' })}</div><div style="margin-top:12px">${F('صورة التوقيع (PNG بخلفية شفافة يفضّل)', 'signature.img', { dir: 'ltr', ph: 'https://', up: 'img' })}</div>${ST.cur.obj.signature.img ? `<img src="${esc(ST.cur.obj.signature.img)}" alt="" style="max-height:80px;margin-top:10px;background:#fff;border-radius:8px;padding:6px">` : ''}</div>
+    <div class="card"><h2>بيانات التواصل الظاهرة في الموقع</h2><div class="g2">${F('الهاتف', 'contact.phone', { dir: 'ltr' })}${F('واتساب', 'contact.whatsapp', { dir: 'ltr' })}${F('البريد', 'contact.email', { dir: 'ltr' })}${F('بوت تيليجرام للدعم', 'contact.telegram', { dir: 'ltr', ph: 'https://t.me/sarmad_site_bot' })}</div><div class="g2" style="margin-top:12px">${FB('العنوان', 'contact.address')}</div></div>
     <div class="card"><h2>روابط التواصل الاجتماعي</h2><div class="g2">${['github', 'linkedin', 'x', 'youtube', 'telegram', 'instagram'].map(k => F(k, 'social.' + k, { dir: 'ltr', ph: 'https://' })).join('')}</div></div><div class="sticky"><button class="btn p" data-act="saveSettings">حفظ</button></div>`);
   },
   media() {
@@ -254,13 +292,83 @@ function renderEditor() {
   $('#main').innerHTML = `<div class="row"><h1 style="margin:0">${isNew ? 'إضافة جديد' : 'تعديل: ' + esc(obj.id)}</h1><span class="sp"></span><button class="btn s" data-act="${ST.cur.raw ? 'rawOff' : 'rawOn'}">JSON متقدم</button></div><div style="margin-top:14px">${body}</div><div class="sticky"><button class="btn p" data-act="saveItem">حفظ ونشر</button><button class="btn" data-act="cancel">إلغاء</button><span class="muted" style="align-self:center">يظهر في الموقع فور الحفظ</span></div>`;
   scrollTo(0, y);
 }
+
+/* ---------- quiz options editor (no line typing) ---------- */
+function optEditor(p, s) {
+  const o = s.o || [], rows = o.map((x, i) => { const ar = typeof x === 'string' ? x : (x.ar || ''), en = typeof x === 'string' ? '' : (x.en || '');
+    return `<div class="orow"><label class="orad" title="الإجابة الصحيحة"><input type="radio" name="ca-${p}" data-act="optCorrect" data-p="${p}" data-i="${i}" ${s.a === i ? 'checked' : ''}><span>صحيح</span></label><input data-opt="${p}" data-i="${i}" data-l="ar" value="${esc(ar)}" placeholder="الخيار ${i + 1}"><input dir="ltr" data-opt="${p}" data-i="${i}" data-l="en" value="${esc(en)}" placeholder="English (اختياري)"><button class="btn s d" type="button" data-act="optDel" data-p="${p}" data-i="${i}" ${o.length <= 2 ? 'disabled' : ''}>✕</button></div>`; }).join('');
+  return `<div class="f"><label>الخيارات — اضغط «صحيح» بجانب الإجابة الصحيحة. Enter داخل خيار يضيف خيارًا جديدًا.</label><div class="opts">${rows}</div><div class="row"><button class="btn s" type="button" data-act="optAdd" data-p="${p}" ${o.length >= 8 ? 'disabled' : ''}>+ إضافة خيار</button></div></div>`;
+}
+document.addEventListener('input', e => { const el = e.target; if (!el.dataset || el.dataset.opt == null || !ST.cur) return; const st = getP(ST.cur.obj, el.dataset.opt), i = +el.dataset.i, row = el.closest('.orow'); const ar = row.querySelector('[data-l=ar]').value, en = row.querySelector('[data-l=en]').value; st.o[i] = en.trim() ? { ar, en } : ar; });
+document.addEventListener('keydown', e => { const el = e.target; if (e.key === 'Enter' && el.dataset && el.dataset.opt != null && ST.cur) { e.preventDefault(); ACT.optAdd({ dataset: { p: el.dataset.opt } }, true); } });
+
+
+/* ---------- aid requests: review, create account, grant ---------- */
+const PW_SETS = ['ABCDEFGHJKLMNPQRSTUVWXYZ', 'abcdefghjkmnpqrstuvwxyz', '23456789', '!@#$%&*?'];
+function genPassword(n = 14) {
+  const rnd = m => crypto.getRandomValues(new Uint32Array(1))[0] % m, all = PW_SETS.join(''), out = PW_SETS.map(s => s[rnd(s.length)]);
+  while (out.length < n) out.push(all[rnd(all.length)]);
+  for (let i = out.length - 1; i > 0; i--) { const j = rnd(i + 1); [out[i], out[j]] = [out[j], out[i]]; } return out.join('');
+}
+const maskN = n => (n ? '•'.repeat(Math.max(0, n.length - 3)) + n.slice(-3) : '');
+const AIDF = [['الاسم', 'name'], ['الهاتف', 'phone'], ['واتساب', 'whatsapp'], ['البريد', 'email'], ['تاريخ الميلاد', 'birth'], ['المحافظة', 'city'], ['العنوان', 'address'], ['المعدل/المجموع', 'gpa'], ['عدد أفراد الأسرة', 'famSize'], ['دخل الأسرة', 'income'], ['الحالة الأسرية', 'famStatus'], ['مهنة ولي الأمر', 'parentJob'], ['الجهاز', 'device'], ['الإنترنت', 'internet']];
+async function aidDetail(id) {
+  busy(); const snap = await db.collection('aid').doc(id).get(); if (!snap.exists) return VIEWS.aid(); const x = { id, ...snap.data() }; ST.cache.aidCur = x;
+  const st = x.study || {}, stl = [st.stage, st.institution, st.faculty, st.major, st.year ? 'سنة/صف ' + st.year : '', st.system].filter(Boolean).join(' · ');
+  const paid = [...BUILTIN.courses.filter(c => c.price > 0 && c.status !== 'soon').map(c => [c.id, c.t.ar]), ['plus', 'باقة Plus'], ['pro', 'باقة Pro']];
+  const done = x.status !== 'new';
+  main(`<div class="row" style="margin-bottom:12px"><button class="btn s" data-act="aidBack">← الرجوع للقائمة</button><span class="sp"></span><span class="tag ${x.status === 'approved' ? 'ok' : x.status === 'rejected' ? 'bad' : 'gold'}">${x.status === 'approved' ? 'مقبول' : x.status === 'rejected' ? 'مرفوض' : 'جديد'}</span></div>
+  <h1>${esc(x.name)}</h1>
+  <div class="card"><h2>البيانات</h2><div class="g2">${AIDF.map(([l, k]) => x[k] != null && x[k] !== '' ? `<div class="f"><label>${l}</label><div dir="auto">${esc(String(x[k]))}</div></div>` : '').join('')}<div class="f"><label>الدراسة</label><div>${esc(stl)}</div></div>
+    <div class="f"><label>الرقم القومي</label><div class="row"><b class="mono" dir="ltr" id="nid-v">${esc(maskN(x.natId || ''))}</b>${x.natIdMasked ? '<span class="tag">مُخفى نهائيًا بعد القرار</span>' : '<button class="btn s" data-act="aidNid">إظهار</button>'}</div></div></div>
+    <div class="f" style="margin-top:12px"><label>المطلوب</label><div>${esc((x.want || []).join('، '))}</div></div><div class="f" style="margin-top:12px"><label>سبب الطلب</label><div style="white-space:pre-wrap">${esc(x.reason || '')}</div></div></div>
+  <div class="card"><h2>المستندات (${x.docKind === 'nid' ? 'بطاقة رقم قومي' : 'كارنيه جامعة'})</h2><div id="aid-imgs" class="g2"><span class="muted">جارٍ التحميل…</span></div></div>
+  <div class="card"><h2>القرار</h2>${done ? `<p class="muted">القرار: ${x.status === 'approved' ? 'مقبول' : 'مرفوض'}${x.note ? ' — ' + esc(x.note) : ''}${x.granted ? '<br>الكورسات الممنوحة: ' + esc(x.granted.join('، ')) : ''}</p>` : ''}
+    <div class="f"><label>الكورسات/الباقات الممنوحة عند القبول</label><div class="row" style="flex-wrap:wrap">${paid.map(([k, n]) => `<label class="orad"><input type="checkbox" class="aid-g" value="${esc(k)}" ${(x.want || []).includes(k) || (x.granted || []).includes(k) ? 'checked' : ''}><span>${esc(n)}</span></label>`).join('')}</div></div>
+    <div class="f" style="margin-top:10px"><label>ملاحظة / سبب الرفض</label><input id="aid-note" value="${esc(x.note || '')}"></div>
+    <div class="row" style="margin-top:12px"><button class="btn p" data-act="aidDecide" data-v="approved">قبول</button><button class="btn d" data-act="aidDecide" data-v="rejected">رفض</button><span class="sp"></span><button class="btn s d" data-act="aidDelImgs">حذف صور الهوية</button><button class="btn s d" data-act="aidDel">حذف الطلب</button></div>
+    <p class="hint">عند القرار يُخفى الرقم القومي نهائيًا. صور الهوية تبقى حتى تحذفها.</p></div>
+  ${x.status === 'approved' ? `<div class="card"><h2>الحساب</h2>${x.accountUid ? `<p>تم إنشاء الحساب (uid: <span class="mono">${esc(x.accountUid)}</span>) وتم منح الكورسات.</p>` : `<div class="g2"><div class="f"><label>البريد</label><input id="ac-em" dir="ltr" value="${esc(x.email || '')}"></div><div class="f"><label>كلمة المرور المؤقتة</label><div class="row"><input id="ac-pw" dir="ltr" class="mono" style="flex:1" value="${genPassword()}"><button class="btn s" data-act="pwGen">توليد</button><button class="btn s" data-act="pwCopy">نسخ</button></div></div></div><div class="sticky"><button class="btn p" data-act="aidAccount">إنشاء الحساب وإرسال رابط التفعيل</button></div><p class="hint">يصل المستخدم رابط تفعيل البريد تلقائيًا من Firebase. أرسل له كلمة المرور المؤقتة بنفسك (واتساب/اتصال). عند أول دخول يؤكد بريده ويغيّر كلمة المرور إجباريًا.</p><div id="ac-out"></div>`}</div>` : ''}`);
+  const box = $('#aid-imgs'); try { const [f, b] = await Promise.all([db.collection('aid').doc(id).collection('docs').doc('front').get(), db.collection('aid').doc(id).collection('docs').doc('back').get()]); box.innerHTML = [f, b].map((d, i) => d.exists ? `<figure style="margin:0"><figcaption class="muted">${i ? 'الظهر' : 'الوجه'}</figcaption><img src="${d.data().d}" alt="" style="width:100%;border-radius:12px;border:1px solid var(--line)"></figure>` : `<span class="muted">${i ? 'الظهر' : 'الوجه'}: محذوف</span>`).join(''); } catch (e) { box.textContent = 'تعذر التحميل'; }
+}
+async function grantTo(uid, ids, tag) {
+  for (const k of ids) { const isPlan = ['plus', 'pro'].includes(k);
+    await db.collection('orders').add({ userId: uid, ref: 'AID-' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 90 + 10), title: isPlan ? { ar: 'باقة ' + k + ' (دعم نساعد بعض)', en: k + ' plan (aid support)' } : { ar: 'دعم نساعد بعض: ' + k, en: 'Aid support: ' + k }, courseId: isPlan ? null : k, plan: isPlan ? k : null, amount: 0, currency: 'EGP', status: 'paid', granted: true, aid: tag, receipt: '', at: now(), paidAt: now() }); }
+}
+async function makeAccount(x, email, pw) {
+  const sec = firebase.apps.find(a => a.name === 'sec') || firebase.initializeApp(FIREBASE_CONFIG, 'sec'), sa = sec.auth(); sa.languageCode = 'ar';
+  const cred = await sa.createUserWithEmailAndPassword(email, pw); await cred.user.sendEmailVerification();
+  const st = x.study || {}; await sec.firestore().collection('users').doc(cred.user.uid).set({ name: x.name, email, phone: x.phone || '', profile: { gender: x.gender || 'm', birth: x.birth || '', city: x.city || '', ...st }, links: { platform: false, learning: true, tam: true }, created: firebase.firestore.FieldValue.serverTimestamp(), mustChange: true, aidId: x.id });
+  await sa.signOut(); return cred.user.uid;
+}
+
+/* ---------- uploads into Firestore (chunked) ---------- */
+const FS_LIM = { video: 60, audio: 60, pdf: 30 }, FS_CH = 900000;
+const FS_ACC = { video: 'video/mp4,video/webm,video/quicktime', audio: 'audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/webm,.mp3,.m4a', pdf: 'application/pdf' };
+function upBar(txt, pct) { let b = $('#upbar'); if (!b) { b = document.createElement('div'); b.id = 'upbar'; b.style.cssText = 'position:fixed;bottom:16px;inset-inline:16px;max-width:460px;margin-inline:auto;background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:12px 16px;z-index:999;box-shadow:0 10px 30px rgba(0,0,0,.25)'; document.body.appendChild(b); } if (txt == null) { b.remove(); return; } b.innerHTML = `<div style="font-size:.9rem;margin-bottom:8px">${txt}</div><div style="height:8px;background:var(--line);border-radius:8px;overflow:hidden"><i style="display:block;height:100%;width:${pct}%;background:var(--accent)"></i></div>`; }
+async function uploadFs(file, kind) {
+  const lim = FS_LIM[kind]; if (file.size > lim * 1048576) throw new Error('الحجم ' + (file.size / 1048576).toFixed(1) + 'MB أكبر من الحد (' + lim + 'MB). استخدم رابطًا مباشرًا بدلًا منه.');
+  if (kind === 'pdf' ? file.type !== 'application/pdf' : !file.type.startsWith(kind + '/') && !/\.(mp3|m4a)$/i.test(file.name)) throw new Error('نوع الملف غير مناسب.');
+  const ref = db.collection('files').doc(), n = Math.ceil(file.size / FS_CH), type = file.type || (kind === 'audio' ? 'audio/mpeg' : kind === 'video' ? 'video/mp4' : 'application/pdf');
+  await ref.set({ name: file.name, type, size: file.size, chunks: n, kind, status: 'uploading', at: now() });
+  try {
+    for (let i = 0; i < n; i++) {
+      upBar('جارٍ رفع ' + esc(file.name) + ' — ' + (i + 1) + '/' + n, Math.round(i / n * 100));
+      const buf = new Uint8Array(await file.slice(i * FS_CH, (i + 1) * FS_CH).arrayBuffer());
+      await ref.collection('chunks').doc(String(i).padStart(4, '0')).set({ i, d: firebase.firestore.Blob.fromUint8Array(buf) });
+    }
+    await ref.update({ status: 'ready' }); upBar(null); return ref.id;
+  } catch (e) { upBar(null); await delFs(ref.id).catch(() => { }); throw e; }
+}
+async function delFs(id) { const r = db.collection('files').doc(id), cs = await r.collection('chunks').get(); await Promise.all(cs.docs.map(d => d.ref.delete())); await r.delete(); }
+function pickFs(kind) { return new Promise((res, rej) => { const i = document.createElement('input'); i.type = 'file'; i.accept = FS_ACC[kind]; i.onchange = async () => { if (!i.files[0]) return; try { res('fs:' + await uploadFs(i.files[0], kind)); } catch (e) { rej(e); } }; i.click(); }); }
 const STEP_NAMES = { text: 'نص', article: 'مقال', video: 'فيديو', audio: 'صوت', pdf: 'PDF', choose: 'اختر', complete: 'أكمل' };
 function courseForm(idF) {
   const o = ST.cur.obj;
   const head = `<div class="card">${idF}<div class="g2">${F('الحالة', 'status', { sel: [['open', 'متاحة'], ['soon', 'قريبًا']] })}${F('السعر (جنيه، 0 = مجانية)', 'price', { t: 'num' })}${F('المستوى', 'level', { sel: [['beginner', 'مبتدئ'], ['intermediate', 'متوسط'], ['advanced', 'متقدم']] })}${F('عدد الساعات', 'hours', { t: 'num', step: '0.5' })}${F('الغلاف (0 إلى 3)', 'art', { t: 'num' })}</div>${FB('عنوان الدورة', 't')}${FB('وصف الدورة', 'd', { area: 1 })}<div class="g2">${F('ماذا سيتعلم الطالب (عربي، سطر لكل نقطة)', 'outcomes.ar', { t: 'lines' })}${F('Outcomes (English, one per line)', 'outcomes.en', { t: 'lines', dir: 'ltr' })}</div></div>`;
   const mods = o.modules.map((m, mi) => `<div class="mod"><div class="row"><b>وحدة ${mi + 1}</b><span class="sp"></span><button class="btn s" data-act="mmove" data-m="${mi}" data-d="-1">↑</button><button class="btn s" data-act="mmove" data-m="${mi}" data-d="1">↓</button><button class="btn s d" data-act="mdel2" data-m="${mi}">حذف الوحدة</button></div>${FB('عنوان الوحدة', `modules.${mi}.t`)}
     ${m.lessons.map((l, li) => `<div class="les"><div class="row"><b>محاضرة ${li + 1}</b> <span class="muted mono">${esc(l.id)}</span> <span class="tag">${(l.steps || []).length}/15 مهمة</span><span class="sp"></span><button class="btn s" data-act="lmove" data-m="${mi}" data-l="${li}" data-d="-1">↑</button><button class="btn s" data-act="lmove" data-m="${mi}" data-l="${li}" data-d="1">↓</button><button class="btn s d" data-act="ldel" data-m="${mi}" data-l="${li}">حذف</button></div>
-      <div class="g2">${F('مجانية للمعاينة؟', `modules.${mi}.lessons.${li}.free`, { sel: [['false', 'لا (للمشتركين)'], ['true', 'نعم (معاينة مجانية)']], cv: 'bool' })}${F('المدة (دقائق)', `modules.${mi}.lessons.${li}.min`, { t: 'num' })}</div>${FB('عنوان المحاضرة', `modules.${mi}.lessons.${li}.t`)}
+      <div class="g2">${F('مجانية للمعاينة؟', `modules.${mi}.lessons.${li}.free`, { sel: [['false', 'لا (للمشتركين)'], ['true', 'نعم (معاينة مجانية)']], cv: 'bool' })}${F('المدة (دقائق)', `modules.${mi}.lessons.${li}.min`, { t: 'num' })}</div>${FB('عنوان المحاضرة', `modules.${mi}.lessons.${li}.t`)}${F('غلاف المحاضرة (صورة اختيارية)', `modules.${mi}.lessons.${li}.cover`, { dir: 'ltr', ph: 'https://', up: 'img' })}
       ${(l.steps || []).map((s, si) => stepForm(mi, li, si, s)).join('')}
       <div class="row" style="margin-top:8px"><span class="muted">إضافة مهمة:</span>${Object.entries(STEP_NAMES).map(([k, n]) => `<button class="btn s" data-act="addStep" data-m="${mi}" data-l="${li}" data-t="${k}" ${(l.steps || []).length >= 15 ? 'disabled' : ''}>${n}</button>`).join('')}</div></div>`).join('')}
     <button class="btn s" data-act="addLesson" data-m="${mi}">+ محاضرة</button></div>`).join('');
@@ -273,10 +381,10 @@ function stepForm(mi, li, si, s) {
   if (!open) return `<div class="stp">${hd}</div>`;
   let f = '';
   if (s.type === 'text' || s.type === 'article') f = FB('العنوان', p + '.t') + FB('المحتوى', p + '.body', { t: 'blocks', rows: 7 }) + (s.type === 'article' ? F('وقت القراءة (دقائق)', p + '.min', { t: 'num' }) : '') + `<div class="hint">${MARKUP}</div>`;
-  else if (s.type === 'video') f = FB('العنوان', p + '.t') + F('رابط الفيديو المباشر (mp4 / webm على https)', p + '.src', { dir: 'ltr', ph: 'https://' }) + FB('ملاحظة (اختياري)', p + '.note');
-  else if (s.type === 'audio') f = FB('العنوان', p + '.t') + F('رابط الملف الصوتي (mp3 على https)', p + '.src', { dir: 'ltr', ph: 'https://' }) + FB('نص مصاحب (اختياري)', p + '.body', { t: 'blocks', rows: 4 });
-  else if (s.type === 'pdf') f = FB('العنوان', p + '.t') + F('رابط ملف PDF (https، ويجب أن يسمح الموقع المستضيف بالقراءة من نطاقك)', p + '.src', { dir: 'ltr', ph: 'https://' });
-  else if (s.type === 'choose') f = FB('السؤال', p + '.q', { area: 1 }) + F('الخيارات (سطر لكل خيار. للثنائي: عربي | English)', p + '.o', { t: 'opts', rows: 4 }) + F('رقم الإجابة الصحيحة (1 = أول خيار)', p + '.a', { t: 'num', off: true }) + FB('شرح بعد الإجابة (اختياري)', p + '.x', { area: 1 });
+  else if (s.type === 'video') f = FB('العنوان', p + '.t') + F('الفيديو: ارفع ملفًا (حتى 60MB) أو ضع رابط https مباشر', p + '.src', { dir: 'ltr', ph: 'https://  أو  fs:…', up: 'video' }) + FB('ملاحظة (اختياري)', p + '.note');
+  else if (s.type === 'audio') f = FB('العنوان', p + '.t') + F('الصوت: ارفع ملفًا (حتى 60MB) أو ضع رابط https مباشر', p + '.src', { dir: 'ltr', ph: 'https://  أو  fs:…', up: 'audio' }) + FB('نص مصاحب (اختياري)', p + '.body', { t: 'blocks', rows: 4 });
+  else if (s.type === 'pdf') f = FB('العنوان', p + '.t') + F('PDF: ارفع ملفًا (حتى 30MB) أو ضع رابط https (يجب أن يسمح الموقع المستضيف بالقراءة)', p + '.src', { dir: 'ltr', ph: 'https://  أو  fs:…', up: 'pdf' });
+  else if (s.type === 'choose') f = FB('السؤال', p + '.q', { area: 1 }) + optEditor(p, s) + FB('شرح بعد الإجابة (اختياري)', p + '.x', { area: 1 });
   else if (s.type === 'complete') f = FB('السؤال (ضع ___ مكان الفراغ)', p + '.q', { area: 1 }) + F('الإجابات المقبولة (سطر لكل إجابة)', p + '.ans', { t: 'lines' }) + FB('شرح بعد الإجابة (اختياري)', p + '.x', { area: 1 });
   return `<div class="stp">${hd}<div style="margin-top:10px;display:grid;gap:10px">${f}</div></div>`;
 }
@@ -299,14 +407,14 @@ function cleanItem(kind, o) {
   if (kind === 'courses' && o.modules) {
     let n = 1; const ids = new Set();
     o.modules.forEach(m => m.lessons.forEach(l => {
-      if (!l.id || ids.has(l.id)) l.id = 'l' + (n++); ids.add(l.id); l.free = !!l.free;
+      if (!l.id || ids.has(l.id)) l.id = 'l' + (n++); ids.add(l.id); l.free = !!l.free; if (l.cover && !/^https:\/\//.test(l.cover)) err.push('غلاف المحاضرة يجب أن يكون رابط https.'); if (!l.cover) delete l.cover;
       if (!l.t || !l.t.ar || !l.t.en) err.push('عنوان كل محاضرة مطلوب بالعربية والإنجليزية.');
       if (l.steps) { if (l.steps.length > 15) err.push('المحاضرة ' + l.id + ': الحد الأقصى 15 مهمة.');
         l.steps.forEach((s, i) => { const w = 'المحاضرة ' + l.id + '، المهمة ' + (i + 1) + ': ';
           if (s.x && blank(s.x)) s.x = null;
           if (s.type === 'choose') { if (!s.q.ar || !s.q.en) err.push(w + 'السؤال بالعربية والإنجليزية.'); if ((s.o || []).length < 2) err.push(w + 'خياران على الأقل.'); if (!(s.a >= 0 && s.a < (s.o || []).length)) err.push(w + 'رقم الإجابة الصحيحة خارج الخيارات.'); }
           else if (s.type === 'complete') { if (!s.q.ar || !s.q.en || !String(s.q.ar).includes('___') || !String(s.q.en).includes('___')) err.push(w + 'السؤال يحتاج ___ في النسختين.'); if (!(s.ans || []).length) err.push(w + 'أدخل إجابة مقبولة واحدة على الأقل.'); }
-          else if (['video', 'audio', 'pdf'].includes(s.type)) { if (!/^https:\/\//.test(s.src || '')) err.push(w + 'الرابط يجب أن يبدأ بـ https://'); if (s.note && blank(s.note)) delete s.note; if (s.body && blank(s.body)) delete s.body; }
+          else if (['video', 'audio', 'pdf'].includes(s.type)) { if (!/^(https:\/\/|fs:[A-Za-z0-9]{20}$)/.test(s.src || '')) err.push(w + 'الرابط يجب أن يبدأ بـ https:// أو يكون ملفًا مرفوعًا.'); if (s.note && blank(s.note)) delete s.note; if (s.body && blank(s.body)) delete s.body; }
           else if (s.type === 'text' || s.type === 'article') { if (blank(s.body.ar) && blank(s.body.en)) err.push(w + 'المحتوى فارغ.'); } }); }
     }));
     if (!o.modules.some(m => m.lessons.length)) err.push('أضف محاضرة واحدة على الأقل.');
@@ -317,6 +425,62 @@ function cleanItem(kind, o) {
 
 /* ---------- actions ---------- */
 const ACT = {
+  async fldUp(el) { const inp = document.getElementById(el.dataset.for), k = el.dataset.k; try { let u; if (k === 'img') { toast('اختر الصورة…'); u = await pickImage(); } else u = await pickFs(k); inp.value = u; inp.dispatchEvent(new Event('input', { bubbles: true })); toast('تم الرفع'); } catch (e) { toast(e.message || 'فشل الرفع'); } },
+  optCorrect(el) { getP(ST.cur.obj, el.dataset.p).a = +el.dataset.i; renderEditor(); },
+  optDel(el) { const st = getP(ST.cur.obj, el.dataset.p), i = +el.dataset.i; if (st.o.length <= 2) return; st.o.splice(i, 1); if (st.a === i) st.a = 0; else if (st.a > i) st.a--; renderEditor(); },
+  optAdd(el, focus) { const p = el.dataset.p, st = getP(ST.cur.obj, p); if ((st.o || []).length >= 8) return; st.o.push(''); renderEditor(); const n = st.o.length - 1; setTimeout(() => { const f = document.querySelector(`[data-opt="${p}"][data-i="${n}"][data-l="ar"]`); if (f) f.focus(); }, 30); },
+  async certOk(el) { const sg = ST.cache.sig || {}; if (!sg.img || !sg.name) return toast('ارفع توقيع المدير واسمه من الإعدادات أولًا'); if (!confirm('تأكيد: هذا المستخدم أنهى الكورس واعتماد الشهادة؟')) return; await db.collection('certs').doc(el.dataset.id).update({ status: 'approved', revoked: false, approvedAt: now(), approvedBy: auth.currentUser.email, sig: { img: sg.img, name: sg.name, title: sg.title || '' } }); toast('تم الاعتماد'); VIEWS.certs(); },
+  async certNo(el) { if (confirm('رفض الطلب؟')) { await db.collection('certs').doc(el.dataset.id).update({ status: 'rejected' }); VIEWS.certs(); } },
+  async certRev(el) { if (confirm('إلغاء هذه الشهادة؟')) { await db.collection('certs').doc(el.dataset.id).update({ status: 'revoked', revoked: true }); VIEWS.certs(); } },
+  async certIssue() {
+    const sg = ST.cache.sig || {}; if (!sg.img || !sg.name) return toast('ارفع توقيع المدير واسمه من الإعدادات أولًا');
+    const u = ST.cache.users.find(x => x.id === $('#ci-u').value), c = ST.cache.ccourses.find(x => x.id === $('#ci-c').value); if (!u || !c) return;
+    const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', code = 'CRT-' + Array.from(crypto.getRandomValues(new Uint8Array(10)), x => A[x % A.length]).join('');
+    if (!confirm('إصدار شهادة ' + (c.t ? c.t.ar : c.id) + ' للمستخدم ' + u.name + '؟')) return;
+    await db.collection('certs').doc(code).set({ userId: u.id, name: u.name || '', sid: u.sid || '', courseId: c.id, courseAr: c.t.ar, courseEn: c.t.en || c.t.ar, hours: c.hours || 0, status: 'approved', revoked: false, at: now(), approvedAt: now(), approvedBy: auth.currentUser.email, sig: { img: sg.img, name: sg.name, title: sg.title || '' } }); toast('تم الإصدار: ' + code); VIEWS.certs();
+  },
+  fsCopy(el) { navigator.clipboard.writeText(el.dataset.v).then(() => toast('تم النسخ')); },
+  async fsDel(el) { if (confirm('حذف الملف نهائيًا؟ أي درس يستخدمه سيتعطّل.')) { upBar('جارٍ الحذف…', 50); try { await delFs(el.dataset.id); } catch (e) { toast('فشل الحذف'); } upBar(null); VIEWS.files(); } },
+  aidOpen(el) { aidDetail(el.dataset.id); },
+  aidBack() { VIEWS.aid(); },
+  aidNid() { const x = ST.cache.aidCur, v = $('#nid-v'); const shown = v.dataset.s === '1'; v.dataset.s = shown ? '' : '1'; v.textContent = shown ? maskN(x.natId) : x.natId; },
+  pwGen() { $('#ac-pw').value = genPassword(); },
+  pwCopy() { navigator.clipboard.writeText($('#ac-pw').value).then(() => toast('تم نسخ كلمة المرور')); },
+  async aidDecide(el) {
+    const x = ST.cache.aidCur, v = el.dataset.v, note = $('#aid-note').value.trim(), g = [...document.querySelectorAll('.aid-g:checked')].map(i => i.value);
+    if (v === 'rejected' && !note) return toast('اكتب سبب الرفض');
+    if (v === 'approved' && !g.length) return toast('اختر ما تمنحه للمستخدم');
+    if (!confirm((v === 'approved' ? 'قبول' : 'رفض') + ' هذا الطلب؟ سيُخفى الرقم القومي نهائيًا.')) return;
+    const d = { status: v, note, decidedAt: now(), natId: maskN(x.natId || ''), natIdMasked: true }; if (v === 'approved') d.granted = g;
+    await db.collection('aid').doc(x.id).update(d); toast('تم'); aidDetail(x.id);
+  },
+  async aidAccount() {
+    const x = ST.cache.aidCur, em = $('#ac-em').value.trim().toLowerCase(), pw = $('#ac-pw').value; if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return toast('بريد غير صحيح'); if (pw.length < 10) return toast('كلمة المرور قصيرة');
+    const out = $('#ac-out'); let uid, existed = false;
+    try { uid = await makeAccount(x, em, pw); }
+    catch (e) { if (e.code === 'auth/email-already-in-use') { const us = await db.collection('users').where('email', '==', em).get(); if (us.empty) return toast('البريد مسجّل في Firebase بدون ملف مستخدم'); uid = us.docs[0].id; existed = true; if (!confirm('هذا البريد لديه حساب بالفعل. هل تمنحه الكورسات على حسابه الحالي؟')) return; } else return toast('فشل إنشاء الحساب: ' + (e.code || e.message)); }
+    await grantTo(uid, x.granted || [], x.id); await db.collection('aid').doc(x.id).update({ accountUid: uid, accountAt: now() });
+    const site = location.href.replace(/admin\.html.*$/, 'index.html'), msg = existed ? `مرحبًا ${x.name}\nتم قبول طلبك في «نساعد بعض» وتم منحك الكورسات على حسابك الحالي.\nالموقع: ${site}` : `مرحبًا ${x.name}\nتم قبول طلبك في «نساعد بعض» 🎉\nالموقع: ${site}\nالبريد: ${em}\nكلمة المرور المؤقتة: ${pw}\nوصلك رابط تفعيل على بريدك. عند أول دخول ستؤكد بريدك وتغيّر كلمة المرور.`;
+    out.innerHTML = `<div class="card" style="margin-top:12px"><b>${existed ? 'تم منح الكورسات' : 'تم إنشاء الحساب'}</b><textarea id="ac-msg" readonly style="min-height:150px;margin-top:8px">${esc(msg)}</textarea><button class="btn s" data-act="msgCopy" style="margin-top:8px">نسخ الرسالة</button></div>`; toast('تم');
+  },
+  msgCopy() { navigator.clipboard.writeText($('#ac-msg').value).then(() => toast('تم النسخ')); },
+  async aidDelImgs() { if (!confirm('حذف صور الهوية نهائيًا؟')) return; const id = ST.cache.aidCur.id; await Promise.all(['front', 'back'].map(k => db.collection('aid').doc(id).collection('docs').doc(k).delete())); toast('تم الحذف'); aidDetail(id); },
+  async aidDel() { if (!confirm('حذف الطلب نهائيًا؟')) return; const id = ST.cache.aidCur.id; await Promise.all(['front', 'back'].map(k => db.collection('aid').doc(id).collection('docs').doc(k).delete())); await db.collection('aid').doc(id).delete(); VIEWS.aid(); },
+  async plAdd() {
+    const ar = $('#pl-ar').value.trim(), amt = +$('#pl-amt').value; if (!ar || !(amt > 0)) return toast('اكتب العنوان والمبلغ');
+    const code = 'P' + Math.random().toString(36).slice(2, 8).toUpperCase(), d = { title: { ar, en: $('#pl-en').value.trim() || ar }, amount: amt, active: true, at: now() }; const n = $('#pl-note').value.trim(); if (n) d.note = { ar: n, en: n };
+    await db.collection('paylinks').doc(code).set(d); toast('تم إنشاء الرابط ' + code); VIEWS.paylinks();
+  },
+  plCopy(el) { navigator.clipboard.writeText(el.dataset.v).then(() => toast('تم نسخ الرابط')); },
+  async plTog(el) { await db.collection('paylinks').doc(el.dataset.id).update({ active: !!el.dataset.v }); VIEWS.paylinks(); },
+  async plDel(el) { if (confirm('حذف الرابط؟')) { await db.collection('paylinks').doc(el.dataset.id).delete(); VIEWS.paylinks(); } },
+  async ntAdd() { const ar = $('#nt-ar').value.trim(); if (!ar) return toast('اكتب نص الإشعار'); const d = { t: { ar, en: $('#nt-en').value.trim() || ar }, on: true, at: now() }, l = $('#nt-link').value.trim(); if (l) { if (!/^(https:\/\/|#)/.test(l)) return toast('الرابط يجب أن يبدأ بـ https:// أو #'); d.link = l; } await db.collection('notices').add(d); toast('تم النشر'); VIEWS.engage(); },
+  async tsAdd() { const n = $('#ts-name').value.trim(), t = $('#ts-text').value.trim(), r = Math.min(5, Math.max(1, +$('#ts-rate').value || 5)); if (!n || !t) return toast('اكتب الاسم والنص'); const ro = $('#ts-role').value.trim(); await db.collection('testimonials').add({ name: n, text: { ar: t, en: t }, role: ro ? { ar: ro, en: ro } : null, rating: r, on: true, at: now() }); toast('تمت الإضافة'); VIEWS.engage(); },
+  async colTog(el) { await db.collection(el.dataset.c).doc(el.dataset.id).update({ on: !!el.dataset.v }); VIEWS.engage(); },
+  async modSet(el) { await db.collection(el.dataset.c).doc(el.dataset.id).update({ status: el.dataset.v }); VIEWS.engage(); },
+  async colDel(el) { if (confirm('حذف نهائي؟')) { await db.collection(el.dataset.c).doc(el.dataset.id).delete(); VIEWS.engage(); } },
+  async qaAns(el) { const d = await db.collection('qa').doc(el.dataset.id).get(), a = prompt('اكتب الإجابة:', (d.data() || {}).answer || ''); if (a === null || !a.trim()) return; await db.collection('qa').doc(el.dataset.id).update({ answer: a.trim().slice(0, 1000), status: 'answered', answeredAt: now() }); VIEWS.engage(); },
+  async mreply(el) { const d = await db.collection('messages').doc(el.dataset.id).get(), a = prompt('الرد الذي سيراه العميل في حسابه:', (d.data() || {}).reply || ''); if (a === null) return; await db.collection('messages').doc(el.dataset.id).update({ reply: a.trim().slice(0, 1000), handled: true }); VIEWS.messages(); },
   async cpAdd() {
     const code = ($('#cp-code').value || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, ''), v = +$('#cp-val').value, t = $('#cp-type').value;
     if (code.length < 3 || !(v > 0) || (t === 'percent' && v > 100)) return toast('تحقق من الكود والقيمة');
@@ -327,7 +491,18 @@ const ACT = {
   async cpDel(el) { if (confirm('حذف الكود؟')) { await db.collection('coupons').doc(el.dataset.id).delete(); VIEWS.coupons(); } },
   async certTog(el) { await db.collection('certs').doc(el.dataset.id).update({ revoked: !!el.dataset.v }); VIEWS.certs(); },
   ofilter(el) { ST.filter = el.dataset.v; VIEWS.orders(); },
-  async ostat(el) { const v = el.dataset.v, d = { status: v }; if (v === 'paid') d.paidAt = now(); try { await db.collection('orders').doc(el.dataset.id).update(d); toast('تم'); VIEWS.orders(); } catch (e) { toast('فشل التحديث'); } },
+  async ostat(el) {
+    const v = el.dataset.v, d = { status: v }; if (v === 'paid') d.paidAt = now(); const o = (ST.cache.orders || []).find(x => x.id === el.dataset.id);
+    try {
+      await db.collection('orders').doc(el.dataset.id).update(d);
+      if (o && o.ref) {
+        if (v === 'paid') { let nm = ''; try { const u = await db.collection('users').doc(o.userId).get(), parts = String((u.data() || {}).name || '').trim().split(/\s+/); nm = parts[0] + (parts[1] ? ' ' + parts[1][0] + '.' : ''); } catch (e) { }
+          const t = typeof o.title === 'object' ? (o.title.ar || '') : o.title; await db.collection('invoices').doc(o.ref).set({ ref: o.ref, orderId: o.id, title: t || '', amount: +o.amount || 0, baseAmount: +o.baseAmount || +o.amount || 0, discount: +o.discount || 0, coupon: o.coupon || '', name: nm, status: 'paid', paidAt: now() }); }
+        else { try { await db.collection('invoices').doc(o.ref).update({ status: 'void' }); } catch (e) { } }
+      }
+      toast('تم'); VIEWS.orders();
+    } catch (e) { toast('فشل التحديث'); }
+  },
   async mdone(el) { await db.collection('messages').doc(el.dataset.id).update({ handled: !!el.dataset.v }); VIEWS.messages(); },
   async mdel(el) { if (confirm('حذف هذه الرسالة نهائيًا؟')) { await db.collection('messages').doc(el.dataset.id).delete(); VIEWS.messages(); } },
   async ndel(el) { await db.collection('newsletter').doc(el.dataset.id).delete(); VIEWS.news(); },
