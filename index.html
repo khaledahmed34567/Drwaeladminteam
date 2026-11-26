@@ -155,7 +155,8 @@ function shell() {
   $('#out').onclick = e => { e.preventDefault(); auth.signOut(); };
   addEventListener('hashchange', route); route();
 }
-function route() { ST.tab = location.hash.slice(1) || 'dash'; ST.cur = null; $$('[data-tab]').forEach(a => a.classList.toggle('on', a.dataset.tab === ST.tab)); (VIEWS[ST.tab] || VIEWS.dash)(); }
+function route() { ST.tab = location.hash.slice(1) || 'dash'; ST.cur = null; $$('[data-tab]').forEach(a => a.classList.toggle('on', a.dataset.tab === ST.tab)); Promise.resolve().then(() => (VIEWS[ST.tab] || VIEWS.dash)()).catch(viewErr); }
+function viewErr(e) { console.error(e); const m = $('#main'); if (m) m.innerHTML = `<div class="card"><h2>تعذر تحميل هذه الصفحة</h2><p class="mono" dir="ltr" style="white-space:pre-wrap">${esc((e && (e.code || e.name)) || '')} ${esc((e && e.message) || e)}</p><p class="muted">${e && e.code === 'permission-denied' ? 'صلاحيات Firestore تمنع القراءة: انسخ قواعد Firestore الكاملة الأخيرة وانشرها من Firebase Console ← Firestore ← Rules، وتأكد أن حساب الأدمن له مستند في مجموعة admins.' : 'حاول إعادة التحميل.'}</p><button class="btn" onclick="route()">إعادة المحاولة</button></div>`; }
 const main = h => { $('#main').innerHTML = h; };
 const busy = () => main('<p class="muted">جارٍ التحميل…</p>');
 
@@ -168,7 +169,7 @@ const VIEWS = {
     <div class="card" style="margin-top:18px"><h2>خطوات سريعة</h2><div class="row"><a class="btn" href="#orders">مراجعة الطلبات</a><a class="btn" href="#courses">دورة جديدة</a><a class="btn" href="#posts">مقال جديد</a><a class="btn" href="#apps">تطبيق جديد</a></div></div>`);
   },
   async orders() {
-    busy(); const [o, u] = await Promise.all([colGet('orders'), colGet('users')]); const um = Object.fromEntries(u.map(x => [x.id, x]));
+    busy(); const [o, u] = await Promise.all([colGet('orders'), colGet('users').catch(() => [])]); const um = Object.fromEntries(u.map(x => [x.id, x]));
     o.sort((a, b) => ms(b.at) - ms(a.at)); ST.cache.orders = o;
     const f = ST.filter, list = o.filter(x => f === 'all' || x.status === f);
     main(`<h1>الطلبات والمدفوعات</h1><div class="row" style="margin-bottom:14px">${[['all', 'الكل'], ['pending', 'تنتظر التأكيد'], ['paid', 'مؤكدة'], ['rejected', 'مرفوضة']].map(([k, n]) => `<button class="btn s ${f === k ? 'p' : ''}" data-act="ofilter" data-v="${k}">${n}</button>`).join('')}</div>
@@ -286,8 +287,8 @@ function renderEditor() {
   let body = '';
   if (ST.cur.raw) body = `<div class="card"><h2>JSON متقدم</h2><textarea id="rawj" dir="ltr" style="min-height:420px" class="mono">${esc(JSON.stringify(obj, null, 2))}</textarea><div class="row" style="margin-top:10px"><button class="btn p" data-act="rawApply">تطبيق</button><button class="btn" data-act="rawOff">رجوع للنموذج</button></div></div>`;
   else if (kind === 'courses') body = legacy ? `<div class="card"><div class="hint">هذه دورة بتنسيق قديم (دروس بدون مهام). يمكن تعديلها من JSON المتقدم، أو إنشاء دورة جديدة بنموذج المهام.</div></div>` : courseForm(idF);
-  else if (kind === 'tracks') body = `<div class="card">${idF}<div class="g2">${F('الأيقونة', 'icon', { sel: ['layout', 'shield', 'card', 'code', 'zap', 'layers', 'book', 'terminal', 'server'].map(x => [x, x]) })}${F('الغلاف (0 إلى 3)', 'art', { t: 'num', cv: 'num' })}${F('المستوى', 'level', { sel: [['beginner', 'مبتدئ'], ['intermediate', 'متوسط'], ['advanced', 'متقدم']] })}</div>${FB('العنوان', 't')}${FB('الوصف', 'd', { area: 1 })}${F('معرّفات الدورات (واحد في كل سطر بالترتيب)', 'courses', { t: 'lines', hint: 'المتاح: ' + [...BUILTIN.courses, ...(ST.cache.courses || [])].map(c => c.id).filter((v, i, a) => a.indexOf(v) === i).join('، ') })}</div>`;
-  else if (kind === 'posts') body = `<div class="card">${idF}<div class="g2">${F('التصنيف', 'cat', { sel: [['security', 'الأمن'], ['engineering', 'الهندسة'], ['payments', 'المدفوعات']] })}${F('التاريخ', 'date', { dir: 'ltr', ph: '2026-11-23' })}${F('وقت القراءة (دقائق)', 'min', { t: 'num' })}${F('الغلاف (0 إلى 3)', 'art', { t: 'num' })}</div>${FB('العنوان', 't')}${FB('المقتطف', 'ex', { area: 1 })}${FB('نص المقال', 'body', { t: 'blocks', rows: 10 })}<div class="hint">${MARKUP}</div></div>`;
+  else if (kind === 'tracks') body = `<div class="card">${idF}<div class="g2">${F('الأيقونة', 'icon', { sel: ['layout', 'shield', 'card', 'code', 'zap', 'layers', 'book', 'terminal', 'server'].map(x => [x, x]) })}${F('الغلاف (0 إلى 3)', 'art', { t: 'num', cv: 'num' })}${F('المستوى', 'level', { sel: [['beginner', 'مبتدئ'], ['intermediate', 'متوسط'], ['advanced', 'متقدم']] })}</div>${F('صورة المسار (اختيارية، تحل محل الغلاف)', 'cover', { dir: 'ltr', ph: 'https://', up: 'img' })}${FB('العنوان', 't')}${FB('الوصف', 'd', { area: 1 })}${F('معرّفات الدورات (واحد في كل سطر بالترتيب)', 'courses', { t: 'lines', hint: 'المتاح: ' + [...BUILTIN.courses, ...(ST.cache.courses || [])].map(c => c.id).filter((v, i, a) => a.indexOf(v) === i).join('، ') })}</div>`;
+  else if (kind === 'posts') body = `<div class="card">${idF}<div class="g2">${F('التصنيف', 'cat', { sel: [['security', 'الأمن'], ['engineering', 'الهندسة'], ['payments', 'المدفوعات']] })}${F('التاريخ', 'date', { dir: 'ltr', ph: '2026-11-23' })}${F('وقت القراءة (دقائق)', 'min', { t: 'num' })}${F('الغلاف (0 إلى 3)', 'art', { t: 'num' })}</div>${F('صورة المقال (اختيارية)', 'cover', { dir: 'ltr', ph: 'https://', up: 'img' })}${FB('العنوان', 't')}${FB('المقتطف', 'ex', { area: 1 })}${FB('نص المقال', 'body', { t: 'blocks', rows: 10 })}<div class="hint">${MARKUP}</div></div>`;
   else if (kind === 'apps') body = `<div class="card">${idF}<div class="g2">${F('الحرف على الأيقونة', 'letter')}${F('لون الأيقونة', 'c', { sel: [['', 'افتراضي'], ['c1', 'أخضر'], ['c2', 'ذهبي']] })}${F('التصنيف', 'cat', { sel: [['edu', 'تعليم'], ['biz', 'أعمال'], ['games', 'ألعاب']] })}${F('الحالة', 'status', { sel: [['live', 'متاح'], ['soon', 'قريبًا']] })}${F('الإصدار', 'version', { dir: 'ltr' })}</div>${FB('الاسم', 'name')}${FB('الوصف', 'd', { area: 1 })}<h3 style="margin-top:12px">روابط التحميل (اتركها فارغة إن لم تتوفر)</h3><div class="g2">${['web', 'windows', 'mac', 'linux', 'android'].map(k => F({ web: 'الويب', windows: 'ويندوز', mac: 'ماك', linux: 'لينكس', android: 'أندرويد' }[k], 'dl.' + k, { dir: 'ltr', ph: 'https://' })).join('')}</div></div>`;
   $('#main').innerHTML = `<div class="row"><h1 style="margin:0">${isNew ? 'إضافة جديد' : 'تعديل: ' + esc(obj.id)}</h1><span class="sp"></span><button class="btn s" data-act="${ST.cur.raw ? 'rawOff' : 'rawOn'}">JSON متقدم</button></div><div style="margin-top:14px">${body}</div><div class="sticky"><button class="btn p" data-act="saveItem">حفظ ونشر</button><button class="btn" data-act="cancel">إلغاء</button><span class="muted" style="align-self:center">يظهر في الموقع فور الحفظ</span></div>`;
   scrollTo(0, y);
@@ -365,10 +366,10 @@ function pickFs(kind) { return new Promise((res, rej) => { const i = document.cr
 const STEP_NAMES = { text: 'نص', article: 'مقال', video: 'فيديو', audio: 'صوت', pdf: 'PDF', choose: 'اختر', complete: 'أكمل' };
 function courseForm(idF) {
   const o = ST.cur.obj;
-  const head = `<div class="card">${idF}<div class="g2">${F('الحالة', 'status', { sel: [['open', 'متاحة'], ['soon', 'قريبًا']] })}${F('السعر (جنيه، 0 = مجانية)', 'price', { t: 'num' })}${F('المستوى', 'level', { sel: [['beginner', 'مبتدئ'], ['intermediate', 'متوسط'], ['advanced', 'متقدم']] })}${F('عدد الساعات', 'hours', { t: 'num', step: '0.5' })}${F('الغلاف (0 إلى 3)', 'art', { t: 'num' })}</div>${FB('عنوان الدورة', 't')}${FB('وصف الدورة', 'd', { area: 1 })}<div class="g2">${F('ماذا سيتعلم الطالب (عربي، سطر لكل نقطة)', 'outcomes.ar', { t: 'lines' })}${F('Outcomes (English, one per line)', 'outcomes.en', { t: 'lines', dir: 'ltr' })}</div></div>`;
+  const head = `<div class="card">${idF}<div class="g2">${F('الحالة', 'status', { sel: [['open', 'متاحة'], ['soon', 'قريبًا']] })}${F('السعر (جنيه، 0 = مجانية)', 'price', { t: 'num' })}${F('المستوى', 'level', { sel: [['beginner', 'مبتدئ'], ['intermediate', 'متوسط'], ['advanced', 'متقدم']] })}${F('عدد الساعات', 'hours', { t: 'num', step: '0.5' })}${F('الغلاف (0 إلى 3)', 'art', { t: 'num' })}</div>${F('صورة الدورة (اختيارية، تحل محل الغلاف)', 'cover', { dir: 'ltr', ph: 'https://', up: 'img' })}${FB('عنوان الدورة', 't')}${FB('وصف الدورة', 'd', { area: 1 })}<div class="g2">${F('ماذا سيتعلم الطالب (عربي، سطر لكل نقطة)', 'outcomes.ar', { t: 'lines' })}${F('Outcomes (English, one per line)', 'outcomes.en', { t: 'lines', dir: 'ltr' })}</div></div>`;
   const mods = o.modules.map((m, mi) => `<div class="mod"><div class="row"><b>وحدة ${mi + 1}</b><span class="sp"></span><button class="btn s" data-act="mmove" data-m="${mi}" data-d="-1">↑</button><button class="btn s" data-act="mmove" data-m="${mi}" data-d="1">↓</button><button class="btn s d" data-act="mdel2" data-m="${mi}">حذف الوحدة</button></div>${FB('عنوان الوحدة', `modules.${mi}.t`)}
     ${m.lessons.map((l, li) => `<div class="les"><div class="row"><b>محاضرة ${li + 1}</b> <span class="muted mono">${esc(l.id)}</span> <span class="tag">${(l.steps || []).length}/15 مهمة</span><span class="sp"></span><button class="btn s" data-act="lmove" data-m="${mi}" data-l="${li}" data-d="-1">↑</button><button class="btn s" data-act="lmove" data-m="${mi}" data-l="${li}" data-d="1">↓</button><button class="btn s d" data-act="ldel" data-m="${mi}" data-l="${li}">حذف</button></div>
-      <div class="g2">${F('مجانية للمعاينة؟', `modules.${mi}.lessons.${li}.free`, { sel: [['false', 'لا (للمشتركين)'], ['true', 'نعم (معاينة مجانية)']], cv: 'bool' })}${F('المدة (دقائق)', `modules.${mi}.lessons.${li}.min`, { t: 'num' })}</div>${FB('عنوان المحاضرة', `modules.${mi}.lessons.${li}.t`)}${F('غلاف المحاضرة (صورة اختيارية)', `modules.${mi}.lessons.${li}.cover`, { dir: 'ltr', ph: 'https://', up: 'img' })}
+      <div class="g2">${F('مجانية للمعاينة؟', `modules.${mi}.lessons.${li}.free`, { sel: [['false', 'لا (للمشتركين)'], ['true', 'نعم (معاينة مجانية)']], cv: 'bool' })}${F('المدة (دقائق)', `modules.${mi}.lessons.${li}.min`, { t: 'num' })}${F('النسبة المطلوبة لفتح المحاضرة التالية % (للمحاضرات ذات الاختبارات)', `modules.${mi}.lessons.${li}.pass`, { t: 'num', ph: '60' })}${F('مرات إعادة الاختبار كاملًا', `modules.${mi}.lessons.${li}.rounds`, { t: 'num', ph: '1' })}</div>${FB('عنوان المحاضرة', `modules.${mi}.lessons.${li}.t`)}${F('غلاف المحاضرة (صورة اختيارية)', `modules.${mi}.lessons.${li}.cover`, { dir: 'ltr', ph: 'https://', up: 'img' })}
       ${(l.steps || []).map((s, si) => stepForm(mi, li, si, s)).join('')}
       <div class="row" style="margin-top:8px"><span class="muted">إضافة مهمة:</span>${Object.entries(STEP_NAMES).map(([k, n]) => `<button class="btn s" data-act="addStep" data-m="${mi}" data-l="${li}" data-t="${k}" ${(l.steps || []).length >= 15 ? 'disabled' : ''}>${n}</button>`).join('')}</div></div>`).join('')}
     <button class="btn s" data-act="addLesson" data-m="${mi}">+ محاضرة</button></div>`).join('');
@@ -384,14 +385,14 @@ function stepForm(mi, li, si, s) {
   else if (s.type === 'video') f = FB('العنوان', p + '.t') + F('الفيديو: ارفع ملفًا (حتى 60MB) أو ضع رابط https مباشر', p + '.src', { dir: 'ltr', ph: 'https://  أو  fs:…', up: 'video' }) + FB('ملاحظة (اختياري)', p + '.note');
   else if (s.type === 'audio') f = FB('العنوان', p + '.t') + F('الصوت: ارفع ملفًا (حتى 60MB) أو ضع رابط https مباشر', p + '.src', { dir: 'ltr', ph: 'https://  أو  fs:…', up: 'audio' }) + FB('نص مصاحب (اختياري)', p + '.body', { t: 'blocks', rows: 4 });
   else if (s.type === 'pdf') f = FB('العنوان', p + '.t') + F('PDF: ارفع ملفًا (حتى 30MB) أو ضع رابط https (يجب أن يسمح الموقع المستضيف بالقراءة)', p + '.src', { dir: 'ltr', ph: 'https://  أو  fs:…', up: 'pdf' });
-  else if (s.type === 'choose') f = FB('السؤال', p + '.q', { area: 1 }) + optEditor(p, s) + FB('شرح بعد الإجابة (اختياري)', p + '.x', { area: 1 });
-  else if (s.type === 'complete') f = FB('السؤال (ضع ___ مكان الفراغ)', p + '.q', { area: 1 }) + F('الإجابات المقبولة (سطر لكل إجابة)', p + '.ans', { t: 'lines' }) + FB('شرح بعد الإجابة (اختياري)', p + '.x', { area: 1 });
+  else if (s.type === 'choose') f = FB('السؤال', p + '.q', { area: 1 }) + F('عدد محاولات هذا السؤال', p + '.tries', { t: 'num', ph: '2' }) + optEditor(p, s) + FB('شرح بعد الإجابة (اختياري)', p + '.x', { area: 1 });
+  else if (s.type === 'complete') f = FB('السؤال (ضع ___ مكان الفراغ)', p + '.q', { area: 1 }) + F('عدد محاولات هذا السؤال', p + '.tries', { t: 'num', ph: '2' }) + F('الإجابات المقبولة (سطر لكل إجابة)', p + '.ans', { t: 'lines' }) + FB('شرح بعد الإجابة (اختياري)', p + '.x', { area: 1 });
   return `<div class="stp">${hd}<div style="margin-top:10px;display:grid;gap:10px">${f}</div></div>`;
 }
 const NEWSTEP = {
   text: () => ({ type: 'text', t: { ar: '', en: '' }, body: { ar: [], en: [] } }), article: () => ({ type: 'article', t: { ar: '', en: '' }, min: 3, body: { ar: [], en: [] } }),
   video: () => ({ type: 'video', t: { ar: '', en: '' }, src: '', note: { ar: '', en: '' } }), audio: () => ({ type: 'audio', t: { ar: '', en: '' }, src: '', body: { ar: [], en: [] } }), pdf: () => ({ type: 'pdf', t: { ar: '', en: '' }, src: '' }),
-  choose: () => ({ type: 'choose', t: { ar: 'اختبار: اختر', en: 'Quiz: choose' }, q: { ar: '', en: '' }, o: ['', ''], a: 0, x: { ar: '', en: '' } }), complete: () => ({ type: 'complete', t: { ar: 'اختبار: أكمل', en: 'Quiz: complete' }, q: { ar: '', en: '' }, ans: [], x: { ar: '', en: '' } })
+  choose: () => ({ type: 'choose', tries: 2, t: { ar: 'اختبار: اختر', en: 'Quiz: choose' }, q: { ar: '', en: '' }, o: ['', ''], a: 0, tries: 2, x: { ar: '', en: '' } }), complete: () => ({ type: 'complete', tries: 2, t: { ar: 'اختبار: أكمل', en: 'Quiz: complete' }, q: { ar: '', en: '' }, ans: [], tries: 2, x: { ar: '', en: '' } })
 };
 /* the "correct answer" field is shown 1-based */
 document.addEventListener('input', e => { const el = e.target; if (el.dataset && el.dataset.off && ST.cur) setP(ST.cur.obj, el.dataset.p, Math.max(0, (+el.value || 1) - 1)); }, true);
@@ -407,11 +408,11 @@ function cleanItem(kind, o) {
   if (kind === 'courses' && o.modules) {
     let n = 1; const ids = new Set();
     o.modules.forEach(m => m.lessons.forEach(l => {
-      if (!l.id || ids.has(l.id)) l.id = 'l' + (n++); ids.add(l.id); l.free = !!l.free; if (l.cover && !/^https:\/\//.test(l.cover)) err.push('غلاف المحاضرة يجب أن يكون رابط https.'); if (!l.cover) delete l.cover;
+      if (!l.id || ids.has(l.id)) l.id = 'l' + (n++); ids.add(l.id); l.free = !!l.free; if (l.cover && !/^https:\/\//.test(l.cover)) err.push('غلاف المحاضرة يجب أن يكون رابط https.'); if (!l.cover) delete l.cover; l.pass = Math.min(100, Math.max(0, l.pass === undefined || l.pass === '' ? 60 : +l.pass || 0)); l.rounds = Math.min(10, Math.max(0, l.rounds === undefined || l.rounds === '' ? 1 : +l.rounds || 0));
       if (!l.t || !l.t.ar || !l.t.en) err.push('عنوان كل محاضرة مطلوب بالعربية والإنجليزية.');
       if (l.steps) { if (l.steps.length > 15) err.push('المحاضرة ' + l.id + ': الحد الأقصى 15 مهمة.');
         l.steps.forEach((s, i) => { const w = 'المحاضرة ' + l.id + '، المهمة ' + (i + 1) + ': ';
-          if (s.x && blank(s.x)) s.x = null;
+          if (s.x && blank(s.x)) s.x = null; if (s.type === 'choose' || s.type === 'complete') s.tries = Math.min(10, Math.max(1, +s.tries || 2));
           if (s.type === 'choose') { if (!s.q.ar || !s.q.en) err.push(w + 'السؤال بالعربية والإنجليزية.'); if ((s.o || []).length < 2) err.push(w + 'خياران على الأقل.'); if (!(s.a >= 0 && s.a < (s.o || []).length)) err.push(w + 'رقم الإجابة الصحيحة خارج الخيارات.'); }
           else if (s.type === 'complete') { if (!s.q.ar || !s.q.en || !String(s.q.ar).includes('___') || !String(s.q.en).includes('___')) err.push(w + 'السؤال يحتاج ___ في النسختين.'); if (!(s.ans || []).length) err.push(w + 'أدخل إجابة مقبولة واحدة على الأقل.'); }
           else if (['video', 'audio', 'pdf'].includes(s.type)) { if (!/^(https:\/\/|fs:[A-Za-z0-9]{20}$)/.test(s.src || '')) err.push(w + 'الرابط يجب أن يبدأ بـ https:// أو يكون ملفًا مرفوعًا.'); if (s.note && blank(s.note)) delete s.note; if (s.body && blank(s.body)) delete s.body; }
@@ -420,6 +421,7 @@ function cleanItem(kind, o) {
     if (!o.modules.some(m => m.lessons.length)) err.push('أضف محاضرة واحدة على الأقل.');
     o.price = +o.price || 0; o.hours = +o.hours || 1;
   }
+  if (o.cover && !/^https:\/\//.test(o.cover)) err.push('رابط الصورة يجب أن يبدأ بـ https://.'); if (!o.cover) delete o.cover;
   return { o, err };
 }
 
@@ -527,15 +529,17 @@ const ACT = {
   async saveItem() {
     const { kind, obj } = ST.cur, { o, err } = cleanItem(kind, obj);
     if (err.length) return alert(err.slice(0, 8).join('\n'));
-    if (ST.cur.isNew) { const ex = await db.collection(COLL[kind]).doc(o.id).get(), b = BUILTIN[kind].some(x => x.id === o.id); if ((ex.exists) || b) return alert('هذا المعرّف مستخدم بالفعل.'); }
-    delete o.hidden; o.updated = now(); await db.collection(COLL[kind]).doc(o.id).set(o); toast('تم الحفظ والنشر'); ST.cur = null; location.hash = '#' + kind; route();
+    if (ST.cur.isNew) { const ex = await db.collection(COLL[kind]).doc(o.id).get().catch(() => ({ exists: false })), b = BUILTIN[kind].some(x => x.id === o.id); if ((ex.exists) || b) return alert('هذا المعرّف مستخدم بالفعل.'); }
+    delete o.hidden; o.updated = now(); const sane = v => Array.isArray(v) ? v.map(sane) : (v && typeof v === 'object' && !(v instanceof Date) && !(v && v._methodName) && Object.getPrototypeOf(v) === Object.prototype) ? Object.fromEntries(Object.entries(v).filter(([, x]) => x !== undefined).map(([k, x]) => [k, sane(x)])) : (typeof v === 'number' && !isFinite(v) ? 0 : v);
+    try { await db.collection(COLL[kind]).doc(o.id).set(sane(o)); } catch (e) { console.error(e); return alert('تعذر الحفظ: ' + (e.code || '') + ' ' + (e.message || e) + (e.code === 'permission-denied' ? '\nانشر قواعد Firestore الأخيرة وتأكد أنك مسجل كأدمن.' : '')); }
+    toast('تم الحفظ والنشر'); ST.cur = null; location.hash = '#' + kind; route();
   },
   async saveSettings() { const o = clone(ST.cur.obj); o.plans.plus.price = +o.plans.plus.price || 800; o.plans.pro.price = +o.plans.pro.price || 1200; o.announce.on = o.announce.on === true || o.announce.on === 'true'; await db.collection('settings').doc('site').set(o); toast('تم الحفظ'); },
   tgl(el) { const k = el.dataset.key; ST.open.has(k) ? ST.open.delete(k) : ST.open.add(k); renderEditor(); },
   addModule() { ST.cur.obj.modules.push({ t: { ar: '', en: '' }, lessons: [] }); renderEditor(); },
   mdel2(el) { if (confirm('حذف الوحدة بكل محاضراتها؟')) { ST.cur.obj.modules.splice(+el.dataset.m, 1); renderEditor(); } },
   mmove(el) { mv(ST.cur.obj.modules, +el.dataset.m, +el.dataset.d); renderEditor(); },
-  addLesson(el) { const o = ST.cur.obj, ids = o.modules.flatMap(m => m.lessons.map(l => l.id)); let n = 1; while (ids.includes('l' + n)) n++; o.modules[+el.dataset.m].lessons.push({ id: 'l' + n, free: false, min: 10, t: { ar: '', en: '' }, steps: [] }); renderEditor(); },
+  addLesson(el) { const o = ST.cur.obj, ids = o.modules.flatMap(m => m.lessons.map(l => l.id)); let n = 1; while (ids.includes('l' + n)) n++; o.modules[+el.dataset.m].lessons.push({ id: 'l' + n, free: false, min: 10, pass: 60, rounds: 1, t: { ar: '', en: '' }, steps: [] }); renderEditor(); },
   ldel(el) { if (confirm('حذف المحاضرة؟')) { ST.cur.obj.modules[+el.dataset.m].lessons.splice(+el.dataset.l, 1); renderEditor(); } },
   lmove(el) { mv(ST.cur.obj.modules[+el.dataset.m].lessons, +el.dataset.l, +el.dataset.d); renderEditor(); },
   addStep(el) { const l = ST.cur.obj.modules[+el.dataset.m].lessons[+el.dataset.l]; l.steps = l.steps || []; if (l.steps.length >= 15) return; l.steps.push(NEWSTEP[el.dataset.t]()); ST.open.add(`${el.dataset.m}.${el.dataset.l}.${l.steps.length - 1}`); renderEditor(); },
