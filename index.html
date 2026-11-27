@@ -68,7 +68,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
 const toast = m => { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); };
 const colGet = async n => { const s = await db.collection(n).get(), a = []; s.forEach(d => a.push({ ...d.data(), id: d.id })); return a; };
 const ST = { tab: 'dash', cache: {}, cur: null, open: new Set(), filter: 'all', q: '' };
-const TABS = [['dash', 'الرئيسية'], ['orders', 'الطلبات والمدفوعات'], ['messages', 'الرسائل والطلبات'], ['blocked', 'المحظورون'], ['users', 'المستخدمون'], ['news', 'النشرة البريدية'], ['coupons', 'أكواد الخصم'], ['paylinks', 'روابط الدفع'], ['engage', 'التفاعل والإشعارات'], ['certs', 'الشهادات'], ['files', 'الملفات المرفوعة'], ['aid', 'نساعد بعض'], ['courses', 'الدورات'], ['tracks', 'المسارات'], ['posts', 'المقالات'], ['apps', 'التطبيقات'], ['settings', 'الباقات والإعدادات'], ['media', 'رفع الصور']];
+const TABS = [['dash', 'الرئيسية'], ['orders', 'الطلبات والمدفوعات'], ['messages', 'الرسائل والطلبات'], ['blocked', 'المحظورون'], ['users', 'المستخدمون'], ['news', 'النشرة البريدية'], ['coupons', 'أكواد الخصم'], ['paylinks', 'روابط الدفع'], ['engage', 'التفاعل والإشعارات'], ['certs', 'الشهادات'], ['files', 'الملفات المرفوعة'], ['aid', 'نساعد بعض'],['aitasks', 'مهام الذكاء الاصطناعي'], ['courses', 'الدورات'], ['tracks', 'المسارات'], ['posts', 'المقالات'], ['apps', 'التطبيقات'], ['settings', 'الباقات والإعدادات'], ['media', 'رفع الصور']];
 
 /* ---------- text <-> blocks ---------- */
 function textToBlocks(t) {
@@ -252,6 +252,22 @@ const VIEWS = {
   async files() {
     busy(); const f = await colGet('files').catch(() => []); f.sort((a, b) => ms(b.at) - ms(a.at));
     main(`<h1>الملفات المرفوعة (${f.length})</h1><div class="card"><p class="muted" style="margin-top:0">ارفع من داخل محرر الدورة (حقل الفيديو/الصوت/PDF). هنا تجد قائمة الملفات وتحذف غير المستخدم منها. المرجع الذي يُكتب في الحقل: <span class="mono">fs:المعرّف</span></p></div><div class="card tw"><table><thead><tr><th>الاسم</th><th>المعرّف</th><th>النوع</th><th>الحجم</th><th>التاريخ</th><th>الحالة</th><th></th></tr></thead><tbody>${f.map(x => `<tr><td>${esc(x.name)}</td><td class="mono">fs:${esc(x.id)}</td><td>${esc(x.kind)}</td><td>${(x.size / 1048576).toFixed(1)}MB</td><td>${fdate(x.at)}</td><td><span class="tag ${x.status === 'ready' ? 'ok' : 'gold'}">${x.status === 'ready' ? 'جاهز' : 'غير مكتمل'}</span></td><td><button class="btn s" data-act="fsCopy" data-v="fs:${esc(x.id)}">نسخ</button> <button class="btn s d" data-act="fsDel" data-id="${esc(x.id)}">حذف</button></td></tr>`).join('') || '<tr><td colspan="7" class="muted">لا توجد ملفات.</td></tr>'}</tbody></table></div>`);
+  },
+    async aitasks() {
+    busy();
+    const a = await colGet('ai_tasks').catch(() => []);
+    main(`<h1>مهام الذكاء الاصطناعي</h1>
+      <div class="card"><h2>مهمة جديدة</h2>
+        <div class="grid">
+          <label class="fld"><span>العنوان بالعربي</span><input id="ai-t-ar" maxlength="120"></label>
+          <label class="fld"><span>Title (English)</span><input id="ai-t-en" maxlength="120" dir="ltr"></label>
+        </div>
+        <label class="fld"><span>الموضوعات المسموحة (سطر لكل موضوع)</span><textarea id="ai-t-topics" rows="5" maxlength="900"></textarea></label>
+        <label class="fld"><span>أقل مدة بالدقايق (10 إلى 360)</span><input id="ai-t-min" type="number" min="10" max="360" value="30"></label>
+        <button class="btn" data-act="aiAdd">نشر المهمة</button>
+        <p class="muted sm">الطالب بيفتح المهمة من صفحة «مهام الذكاء الاصطناعي» في الموقع، والمدرّس الذكي مش بيتكلم غير في الموضوعات المكتوبة هنا.</p>
+      </div>
+      <div class="card"><h2>المهام (${a.length})</h2>${a.length ? `<table class="tbl"><thead><tr><th>العنوان</th><th>الموضوعات</th><th>المدة</th><th>الحالة</th><th></th></tr></thead><tbody>${a.map(x => `<tr><td>${esc(x.title && (x.title.ar || x.title))}</td><td class="mono" style="max-width:320px;white-space:pre-wrap">${esc(String(x.topics || '').slice(0, 160))}</td><td>${esc(x.min || 30)}</td><td>${x.on ? 'مفعّلة' : 'موقوفة'}</td><td><button class="btn sm" data-act="aiTog" data-id="${esc(x.id)}" data-v="${x.on ? 0 : 1}">${x.on ? 'إيقاف' : 'تفعيل'}</button> <button class="btn sm" data-act="aiDel" data-id="${esc(x.id)}">حذف</button></td></tr>`).join('')}</tbody></table>` : '<p class="muted">مفيش مهام بعد.</p>'}</div>`);
   },
   async aid() {
     busy(); let a = []; try { const q = await db.collection('aid').orderBy('at', 'desc').limit(100).get(); q.forEach(d => a.push({ id: d.id, ...d.data() })); } catch (e) { }
@@ -467,6 +483,16 @@ const ACT = {
   },
   fsCopy(el) { navigator.clipboard.writeText(el.dataset.v).then(() => toast('تم النسخ')); },
   async fsDel(el) { if (confirm('حذف الملف نهائيًا؟ أي درس يستخدمه سيتعطّل.')) { upBar('جارٍ الحذف…', 50); try { await delFs(el.dataset.id); } catch (e) { toast('فشل الحذف'); } upBar(null); VIEWS.files(); } },
+  async aiAdd() {
+    const ar = ($('#ai-t-ar').value || '').trim(), en = ($('#ai-t-en').value || '').trim() || ar;
+    const topics = ($('#ai-t-topics').value || '').trim().slice(0, 900);
+    const min = Math.min(360, Math.max(10, +($('#ai-t-min').value || 30)));
+    if (!ar || topics.length < 3) return toast('اكتب العنوان والموضوعات');
+    await db.collection('ai_tasks').add({ title: { ar, en }, topics, min, on: true, at: now() });
+    toast('تم نشر المهمة'); VIEWS.aitasks();
+  },
+  async aiTog(el) { await db.collection('ai_tasks').doc(el.dataset.id).update({ on: el.dataset.v === '1' }); VIEWS.aitasks(); },
+  async aiDel(el) { if (confirm('حذف المهمة نهائيًا؟')) { await db.collection('ai_tasks').doc(el.dataset.id).delete(); VIEWS.aitasks(); } },
   aidOpen(el) { aidDetail(el.dataset.id); },
   aidBack() { VIEWS.aid(); },
   aidNid() { const x = ST.cache.aidCur, v = $('#nid-v'); const shown = v.dataset.s === '1'; v.dataset.s = shown ? '' : '1'; v.textContent = shown ? maskN(x.natId) : x.natId; },
