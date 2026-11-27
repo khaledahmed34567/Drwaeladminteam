@@ -283,6 +283,8 @@ const VIEWS = {
         <label class="fld"><span>Brief (English)</span><textarea id="lab-b-en" rows="2" maxlength="800" dir="ltr"></textarea></label>
         <label class="fld"><span>HTML البداية (اختياري)</span><textarea id="lab-html" rows="4" dir="ltr" class="mono"></textarea></label>
         <label class="fld"><span>كود الطالب (JavaScript)</span><textarea id="lab-js" rows="8" dir="ltr" class="mono"></textarea></label>
+        <label class="fld"><span>تلميح للطالب (اختياري)</span><textarea id="lab-hint-ar" rows="2" maxlength="400"></textarea></label>
+        <label class="fld"><span>Hint (English)</span><textarea id="lab-hint-en" rows="2" maxlength="400" dir="ltr"></textarea></label>
         <label class="fld"><span>الاختبارات: سطر لكل اختبار بالشكل  الاسم | التعبير</span><textarea id="lab-tests" rows="5" dir="ltr" class="mono" placeholder="sum(2,3)=5 | sum(2,3)===5"></textarea></label>
         <label class="fld"><span>الترتيب</span><input id="lab-order" type="number" value="1" min="1" max="99"></label>
         <button class="btn" data-act="labAdd">نشر التجربة</button>
@@ -523,7 +525,8 @@ const ACT = {
     const tests = ($('#lab-tests').value || '').split('\n').map(l => l.trim()).filter(Boolean).map((l, i) => { const p = l.split('|'); const name = (p[0] || '').trim() || ('اختبار ' + (i + 1)); const expr = (p[1] || p[0] || '').trim(); return { name, expr }; }).filter(t => t.expr).slice(0, 12);
     if (!ar || !js) return toast('اكتب العنوان والكود');
     if (!tests.length) return toast('اكتب اختبار واحد على الأقل');
-    await db.collection('labs').add({ title: { ar, en }, brief: { ar: bAr, en: bEn }, code: { html, js }, tests, order, on: true, at: now() });
+    const hAr = ($('#lab-hint-ar').value || '').trim(), hEn = ($('#lab-hint-en').value || '').trim() || hAr;
+    await db.collection('labs').add({ title: { ar, en }, brief: { ar: bAr, en: bEn }, hint: { ar: hAr, en: hEn }, code: { html, js }, tests, order, on: true, at: now() });
     toast('تم نشر التجربة'); VIEWS.labs();
   },
   async labTog(el) { await db.collection('labs').doc(el.dataset.id).update({ on: el.dataset.v === '1' }); VIEWS.labs(); },
