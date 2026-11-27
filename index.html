@@ -337,12 +337,11 @@ async function aidDetail(id) {
     <div class="f"><label>الرقم القومي</label><div class="row"><b class="mono" dir="ltr" id="nid-v">${esc(maskN(x.natId || ''))}</b>${x.natIdMasked ? '<span class="tag">مُخفى نهائيًا بعد القرار</span>' : '<button class="btn s" data-act="aidNid">إظهار</button>'}</div></div></div>
     <div class="f" style="margin-top:12px"><label>المطلوب</label><div>${esc((x.want || []).join('، '))}</div></div><div class="f" style="margin-top:12px"><label>سبب الطلب</label><div style="white-space:pre-wrap">${esc(x.reason || '')}</div></div></div>
   <div class="card"><h2>المستندات (${x.docKind === 'nid' ? 'بطاقة رقم قومي' : 'كارنيه جامعة'})</h2><div id="aid-imgs" class="g2"><span class="muted">جارٍ التحميل…</span></div></div>
-  ${x.docFields ? `<div class="card"><h2>بيانات مقروءة من المستند (ذكاء اصطناعي)</h2><p class="hint">قد يخطئ في الأسماء العربية، راجع الصور أعلاه قبل الاعتماد عليها. تُحذف تلقائيًا عند القبول.</p><div class="g2">${Object.keys(x.docFields).filter(k => k !== '_who' && x.docFields[k]).map(k => `<div class="f"><label>${({ name: 'الاسم', nationalId: 'الرقم القومي', address: 'العنوان', birth: 'الميلاد', gender: 'النوع', issueDate: 'الإصدار', expiry: 'الانتهاء', university: 'الجامعة', faculty: 'الكلية', department: 'القسم', studentId: 'الرقم الجامعي', year: 'الفرقة', academicYear: 'العام الدراسي' })[k] || k}</label><div dir="auto">${esc(String(x.docFields[k]))}</div></div>`).join('')}</div></div>` : ''}
   <div class="card"><h2>القرار</h2>${done ? `<p class="muted">القرار: ${x.status === 'approved' ? 'مقبول' : 'مرفوض'}${x.note ? ' — ' + esc(x.note) : ''}${x.granted ? '<br>الكورسات الممنوحة: ' + esc(x.granted.join('، ')) : ''}</p>` : ''}
     <div class="f"><label>الكورسات/الباقات الممنوحة عند القبول</label><div class="row" style="flex-wrap:wrap">${paid.map(([k, n]) => `<label class="orad"><input type="checkbox" class="aid-g" value="${esc(k)}" ${(x.want || []).includes(k) || (x.granted || []).includes(k) ? 'checked' : ''}><span>${esc(n)}</span></label>`).join('')}</div></div>
     <div class="f" style="margin-top:10px"><label>ملاحظة / سبب الرفض</label><input id="aid-note" value="${esc(x.note || '')}"></div>
     <div class="row" style="margin-top:12px"><button class="btn p" data-act="aidDecide" data-v="approved">قبول</button><button class="btn d" data-act="aidDecide" data-v="rejected">رفض</button><span class="sp"></span><button class="btn s d" data-act="aidDelImgs">حذف صور الهوية</button><button class="btn s d" data-act="aidDel">حذف الطلب</button></div>
-    <p class="hint">عند القبول يُخفى الرقم القومي نهائيًا وتُحذف صور الهوية والبيانات المستخرجة تلقائيًا. عند الرفض تبقى الصور حتى تحذفها.</p></div>
+    <p class="hint">عند القرار يُخفى الرقم القومي نهائيًا. صور الهوية تبقى حتى تحذفها.</p></div>
   ${x.status === 'approved' ? `<div class="card"><h2>الحساب</h2>${x.accountUid ? `<p>تم إنشاء الحساب (uid: <span class="mono">${esc(x.accountUid)}</span>) وتم منح الكورسات.</p>` : `<div class="g2"><div class="f"><label>البريد</label><input id="ac-em" dir="ltr" value="${esc(x.email || '')}"></div><div class="f"><label>كلمة المرور المؤقتة</label><div class="row"><input id="ac-pw" dir="ltr" class="mono" style="flex:1" value="${genPassword()}"><button class="btn s" data-act="pwGen">توليد</button><button class="btn s" data-act="pwCopy">نسخ</button></div></div></div><div class="sticky"><button class="btn p" data-act="aidAccount">إنشاء الحساب وإرسال رابط التفعيل</button></div><p class="hint">يصل المستخدم رابط تفعيل البريد تلقائيًا من Firebase. أرسل له كلمة المرور المؤقتة بنفسك (واتساب/اتصال). عند أول دخول يؤكد بريده ويغيّر كلمة المرور إجباريًا.</p><div id="ac-out"></div>`}</div>` : ''}`);
   const box = $('#aid-imgs'); try { const [f, b] = await Promise.all([db.collection('aid').doc(id).collection('docs').doc('front').get(), db.collection('aid').doc(id).collection('docs').doc('back').get()]); box.innerHTML = [f, b].map((d, i) => d.exists ? `<figure style="margin:0"><figcaption class="muted">${i ? 'الظهر' : 'الوجه'}</figcaption><img src="${d.data().d}" alt="" style="width:100%;border-radius:12px;border:1px solid var(--line)"></figure>` : `<span class="muted">${i ? 'الظهر' : 'الوجه'}: محذوف</span>`).join(''); } catch (e) { box.textContent = 'تعذر التحميل'; }
 }
@@ -350,9 +349,16 @@ async function grantTo(uid, ids, tag) {
   for (const k of ids) { const isPlan = ['plus', 'pro'].includes(k);
     await db.collection('orders').add({ userId: uid, ref: 'AID-' + Date.now().toString(36).toUpperCase() + Math.floor(Math.random() * 90 + 10), title: isPlan ? { ar: 'باقة ' + k + ' (دعم نساعد بعض)', en: k + ' plan (aid support)' } : { ar: 'دعم نساعد بعض: ' + k, en: 'Aid support: ' + k }, courseId: isPlan ? null : k, plan: isPlan ? k : null, amount: 0, currency: 'EGP', status: 'paid', granted: true, aid: tag, receipt: '', at: now(), paidAt: now() }); }
 }
+let AC_SEND = null;
 async function makeAccount(x, email, pw) {
   const sec = firebase.apps.find(a => a.name === 'sec') || firebase.initializeApp(FIREBASE_CONFIG, 'sec'), sa = sec.auth(); sa.languageCode = 'ar';
-  const cred = await sa.createUserWithEmailAndPassword(email, pw); await cred.user.sendEmailVerification();
+  const cred = await sa.createUserWithEmailAndPassword(email, pw);
+  AC_SEND = null;
+  try {
+    const t = await cred.user.getIdToken();
+    const r = await fetch('https://sarmad-bot.khaledahmedelbrbary80.workers.dev/otpstart', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ t, ch: 'email' }) });
+    AC_SEND = await r.json();
+  } catch (e) { AC_SEND = { ok: false, why: 'send' }; }
   const st = x.study || {}; await sec.firestore().collection('users').doc(cred.user.uid).set({ name: x.name, email, phone: x.phone || '', profile: { gender: x.gender || 'm', birth: x.birth || '', city: x.city || '', ...st }, links: { platform: false, learning: true, tam: true }, created: firebase.firestore.FieldValue.serverTimestamp(), mustChange: true, aidId: x.id });
   await sa.signOut(); return cred.user.uid;
 }
@@ -471,9 +477,7 @@ const ACT = {
     if (v === 'approved' && !g.length) return toast('اختر ما تمنحه للمستخدم');
     if (!confirm((v === 'approved' ? 'قبول' : 'رفض') + ' هذا الطلب؟ سيُخفى الرقم القومي نهائيًا.')) return;
     const d = { status: v, note, decidedAt: now(), natId: maskN(x.natId || ''), natIdMasked: true }; if (v === 'approved') d.granted = g;
-    await db.collection('aid').doc(x.id).update(d);
-    if (v === 'approved') { try { await Promise.all(['front', 'back'].map(k => db.collection('aid').doc(x.id).collection('docs').doc(k).delete())); await db.collection('aid').doc(x.id).update({ docFields: null, docsDeletedAt: now() }); } catch (e) { } }
-    toast(v === 'approved' ? 'تم القبول وحُذفت الصور والبيانات المستخرجة' : 'تم الرفض'); aidDetail(x.id);
+    await db.collection('aid').doc(x.id).update(d); toast('تم'); aidDetail(x.id);
   },
   async aidAccount() {
     const x = ST.cache.aidCur, em = $('#ac-em').value.trim().toLowerCase(), pw = $('#ac-pw').value; if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return toast('بريد غير صحيح'); if (pw.length < 10) return toast('كلمة المرور قصيرة');
@@ -481,8 +485,8 @@ const ACT = {
     try { uid = await makeAccount(x, em, pw); }
     catch (e) { if (e.code === 'auth/email-already-in-use') { const us = await db.collection('users').where('email', '==', em).get(); if (us.empty) return toast('البريد مسجّل في Firebase بدون ملف مستخدم'); uid = us.docs[0].id; existed = true; if (!confirm('هذا البريد لديه حساب بالفعل. هل تمنحه الكورسات على حسابه الحالي؟')) return; } else return toast('فشل إنشاء الحساب: ' + (e.code || e.message)); }
     await grantTo(uid, x.granted || [], x.id); await db.collection('aid').doc(x.id).update({ accountUid: uid, accountAt: now() });
-    const site = location.href.replace(/admin\.html.*$/, 'index.html'), msg = existed ? `مرحبًا ${x.name}\nتم قبول طلبك في «نساعد بعض» وتم منحك الكورسات على حسابك الحالي.\nالموقع: ${site}` : `مرحبًا ${x.name}\nتم قبول طلبك في «نساعد بعض» 🎉\nالموقع: ${site}\nالبريد: ${em}\nكلمة المرور المؤقتة: ${pw}\nوصلك رابط تفعيل على بريدك. عند أول دخول ستؤكد بريدك وتغيّر كلمة المرور.`;
-    out.innerHTML = `<div class="card" style="margin-top:12px"><b>${existed ? 'تم منح الكورسات' : 'تم إنشاء الحساب'}</b><textarea id="ac-msg" readonly style="min-height:150px;margin-top:8px">${esc(msg)}</textarea><button class="btn s" data-act="msgCopy" style="margin-top:8px">نسخ الرسالة</button></div>`; toast('تم');
+    const site = location.href.replace(/admin\.html.*$/, 'index.html'), msg = existed ? `مرحبًا ${x.name}\nتم قبول طلبك في «نساعد بعض» وتم منحك الكورسات على حسابك الحالي.\nالموقع: ${site}` : `مرحبًا ${x.name}\nتم قبول طلبك في «نساعد بعض» 🎉\nالموقع: ${site}\nالبريد: ${em}\nكلمة المرور المؤقتة: ${pw}\nوصلك كود تفعيل على بريدك. عند أول دخول اكتب الكود ثم غيّر كلمة المرور المؤقتة.`;
+    out.innerHTML = `<div class="card" style="margin-top:12px"><b>${existed ? 'تم منح الكورسات' : 'تم إنشاء الحساب'}</b><div class="muted" style="margin-top:6px;font-size:.85rem">${existed ? '' : (AC_SEND && AC_SEND.ok ? '✅ تم إرسال كود التفعيل على بريده.' : '⚠️ كود التفعيل لم يُرسل (' + ((AC_SEND && AC_SEND.why) || 'خطأ') + '). اطلب منه الضغط على «أعد إرسال الكود» في صفحة التفعيل.')}</div><textarea id="ac-msg" readonly style="min-height:150px;margin-top:8px">${esc(msg)}</textarea><button class="btn s" data-act="msgCopy" style="margin-top:8px">نسخ الرسالة</button></div>`; toast('تم');
   },
   msgCopy() { navigator.clipboard.writeText($('#ac-msg').value).then(() => toast('تم النسخ')); },
   async aidDelImgs() { if (!confirm('حذف صور الهوية نهائيًا؟')) return; const id = ST.cache.aidCur.id; await Promise.all(['front', 'back'].map(k => db.collection('aid').doc(id).collection('docs').doc(k).delete())); toast('تم الحذف'); aidDetail(id); },
