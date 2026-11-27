@@ -196,7 +196,7 @@ const VIEWS = {
     busy(); const u = await colGet('users'); u.sort((a, b) => ms(b.created) - ms(a.created)); ST.cache.users = u;
     const q = ST.q.toLowerCase(), list = u.filter(x => !q || [x.name, x.email, x.phone, x.sid].join(' ').toLowerCase().includes(q));
     const stg = { primary: 'ابتدائي', prep: 'إعدادي', secondary: 'ثانوي', university: 'جامعي', graduate: 'خريج', other: 'آخر' };
-    main(`<h1>المستخدمون (${u.length})</h1><div class="f" style="max-width:360px;margin-bottom:12px"><input id="uq" placeholder="بحث بالاسم أو البريد أو الهاتف أو رقم المستخدم" value="${esc(ST.q)}"></div><div class="card tw"><table><thead><tr><th>الاسم</th><th>رقم المستخدم</th><th>التواصل</th><th>الدراسة</th><th>التسجيل</th><th></th></tr></thead><tbody>${list.map(x => { const s = x.study || {}; return `<tr><td>${esc(x.name)}<br><span class="muted">${esc((x.profile || {}).city || '')}</span></td><td class="mono">${esc(x.sid || '—')}${x.refBy ? '<br><span class="muted">دعوة من ' + esc(x.refBy) + '</span>' : ''}</td><td class="mono">${esc(x.email)}<br>${esc(x.phone || '')}</td><td>${s.stage ? esc(stg[s.stage] || s.stage) + (s.year ? ' · ' + s.year : '') + '<br>' + esc(s.institution || '') + (s.faculty ? ' · ' + esc(s.faculty) : '') : '<span class="muted">—</span>'}</td><td>${fdate(x.created)}</td><td><button class="btn s" data-act="grant" data-id="${x.id}">منح وصول</button></td></tr>`; }).join('')}</tbody></table></div>`);
+    main(`<h1>المستخدمون (${u.length})</h1><div class="f" style="max-width:360px;margin-bottom:12px"><input id="uq" placeholder="بحث بالاسم أو البريد أو الهاتف أو رقم المستخدم" value="${esc(ST.q)}"></div><div class="card tw"><table><thead><tr><th>الاسم</th><th>رقم المستخدم</th><th>التواصل</th><th>الدراسة</th><th>التسجيل</th><th></th></tr></thead><tbody>${list.map(x => { const s = x.study || {}; return `<tr><td>${esc(x.name)}<br><span class="muted">${esc((x.profile || {}).city || '')}</span></td><td class="mono">${esc(x.sid || '—')}${x.refBy ? '<br><span class="muted">دعوة من ' + esc(x.refBy) + '</span>' : ''}</td><td class="mono">${esc(x.email)}<br>${esc(x.phone || '')}</td><td>${s.stage ? esc(stg[s.stage] || s.stage) + (s.year ? ' · ' + s.year : '') + '<br>' + esc(s.institution || '') + (s.faculty ? ' · ' + esc(s.faculty) : '') : '<span class="muted">—</span>'}</td><td>${fdate(x.created)}</td><td><button class="btn s" data-act="grant" data-id="${x.id}">منح وصول</button> <button class="btn s d" data-act="udel" data-id="${x.id}">حذف</button></td></tr>`; }).join('')}</tbody></table></div>`);
     $('#uq').oninput = e => { ST.q = e.target.value; const p = e.target.selectionStart; VIEWS.users().then(() => { const i = $('#uq'); i.focus(); i.setSelectionRange(p, p); }); };
   },
   async news() {
@@ -536,6 +536,21 @@ const ACT = {
   async mdel(el) { if (confirm('حذف هذه الرسالة نهائيًا؟')) { await db.collection('messages').doc(el.dataset.id).delete(); VIEWS.messages(); } },
   async ndel(el) { await db.collection('newsletter').doc(el.dataset.id).delete(); VIEWS.news(); },
   copyEmails() { navigator.clipboard.writeText((ST.cache.news || []).map(x => x.email).join(', ')).then(() => toast('تم النسخ')); },
+  async udel(el) {
+    const id = el.dataset.id, u = (ST.cache.users || []).find(x => x.id === id) || {};
+    if (!confirm('حذف الحساب نهائيًا: ' + (u.email || id) + '؟ لا يمكن التراجع عن الحذف.')) return;
+    busy();
+    try {
+      const t = await auth.currentUser.getIdToken();
+      const r = await fetch('https://sarmad-bot.khaledahmedelbrbary80.workers.dev/deluser', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ t, uid: id }) });
+      const j = await r.json();
+      if (j && j.ok) { toast('تم حذف الحساب'); VIEWS.users(); return; }
+      if (j && j.why === 'deny') toast('الحذف متاح للمالك فقط');
+      else if (j && j.why === 'owner') toast('لا يمكن حذف حساب المالك');
+      else if (j && j.why === 'notfound') toast('الحساب غير موجود');
+      else toast('تعذر الحذف');
+    } catch (e) { toast('تعذر الحذف'); }
+  },
   async grant(el) {
     const u = ST.cache.users.find(x => x.id === el.dataset.id), cs = [...BUILTIN.courses.filter(c => c.status !== 'soon'), ...(ST.cache.courses || [])].map(c => c.id).filter((v, i, a) => a.indexOf(v) === i);
     const w = prompt('منح وصول للمستخدم ' + u.name + '\nاكتب: plus أو pro أو معرّف دورة\nالمتاح: ' + cs.join('، ')); if (!w) return; const k = w.trim().toLowerCase(); const isPlan = ['plus', 'pro'].includes(k);
