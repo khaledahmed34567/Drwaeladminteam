@@ -68,7 +68,7 @@ const clone = o => JSON.parse(JSON.stringify(o));
 const toast = m => { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); };
 const colGet = async n => { const s = await db.collection(n).get(), a = []; s.forEach(d => a.push({ ...d.data(), id: d.id })); return a; };
 const ST = { tab: 'dash', cache: {}, cur: null, open: new Set(), filter: 'all', q: '' };
-const TABS = [['dash', 'الرئيسية'], ['orders', 'الطلبات والمدفوعات'], ['messages', 'الرسائل والطلبات'], ['blocked', 'المحظورون'], ['users', 'المستخدمون'], ['news', 'النشرة البريدية'], ['coupons', 'أكواد الخصم'], ['paylinks', 'روابط الدفع'], ['engage', 'التفاعل والإشعارات'], ['certs', 'الشهادات'], ['files', 'الملفات المرفوعة'], ['aid', 'نساعد بعض'],['aitasks', 'مهام الذكاء الاصطناعي'], ['courses', 'الدورات'], ['tracks', 'المسارات'], ['posts', 'المقالات'], ['apps', 'التطبيقات'], ['settings', 'الباقات والإعدادات'], ['media', 'رفع الصور']];
+const TABS = [['dash', 'الرئيسية'], ['orders', 'الطلبات والمدفوعات'], ['messages', 'الرسائل والطلبات'], ['blocked', 'المحظورون'], ['users', 'المستخدمون'], ['news', 'النشرة البريدية'], ['coupons', 'أكواد الخصم'], ['paylinks', 'روابط الدفع'], ['engage', 'التفاعل والإشعارات'], ['certs', 'الشهادات'], ['files', 'الملفات المرفوعة'], ['aid', 'نساعد بعض'],['aitasks', 'مهام الذكاء الاصطناعي'],['labs', 'المعمل التفاعلي'], ['courses', 'الدورات'], ['tracks', 'المسارات'], ['posts', 'المقالات'], ['apps', 'التطبيقات'], ['settings', 'الباقات والإعدادات'], ['media', 'رفع الصور']];
 
 /* ---------- text <-> blocks ---------- */
 function textToBlocks(t) {
@@ -268,6 +268,27 @@ const VIEWS = {
         <p class="muted sm">الطالب بيفتح المهمة من صفحة «مهام الذكاء الاصطناعي» في الموقع، والمدرّس الذكي مش بيتكلم غير في الموضوعات المكتوبة هنا.</p>
       </div>
       <div class="card"><h2>المهام (${a.length})</h2>${a.length ? `<table class="tbl"><thead><tr><th>العنوان</th><th>الموضوعات</th><th>المدة</th><th>الحالة</th><th></th></tr></thead><tbody>${a.map(x => `<tr><td>${esc(x.title && (x.title.ar || x.title))}</td><td class="mono" style="max-width:320px;white-space:pre-wrap">${esc(String(x.topics || '').slice(0, 160))}</td><td>${esc(x.min || 30)}</td><td>${x.on ? 'مفعّلة' : 'موقوفة'}</td><td><button class="btn sm" data-act="aiTog" data-id="${esc(x.id)}" data-v="${x.on ? 0 : 1}">${x.on ? 'إيقاف' : 'تفعيل'}</button> <button class="btn sm" data-act="aiDel" data-id="${esc(x.id)}">حذف</button></td></tr>`).join('')}</tbody></table>` : '<p class="muted">مفيش مهام بعد.</p>'}</div>`);
+  },
+  async labs() {
+    busy();
+    const a = await colGet('labs').catch(() => []);
+    a.sort((x, y) => (x.order || 99) - (y.order || 99));
+    main(`<h1>المعمل التفاعلي</h1>
+      <div class="card"><h2>تجربة جديدة</h2>
+        <div class="grid">
+          <label class="fld"><span>العنوان بالعربي</span><input id="lab-t-ar" maxlength="120"></label>
+          <label class="fld"><span>Title (English)</span><input id="lab-t-en" maxlength="120" dir="ltr"></label>
+        </div>
+        <label class="fld"><span>الشرح بالعربي</span><textarea id="lab-b-ar" rows="3" maxlength="800"></textarea></label>
+        <label class="fld"><span>Brief (English)</span><textarea id="lab-b-en" rows="2" maxlength="800" dir="ltr"></textarea></label>
+        <label class="fld"><span>HTML البداية (اختياري)</span><textarea id="lab-html" rows="4" dir="ltr" class="mono"></textarea></label>
+        <label class="fld"><span>كود الطالب (JavaScript)</span><textarea id="lab-js" rows="8" dir="ltr" class="mono"></textarea></label>
+        <label class="fld"><span>الاختبارات: سطر لكل اختبار بالشكل  الاسم | التعبير</span><textarea id="lab-tests" rows="5" dir="ltr" class="mono" placeholder="sum(2,3)=5 | sum(2,3)===5"></textarea></label>
+        <label class="fld"><span>الترتيب</span><input id="lab-order" type="number" value="1" min="1" max="99"></label>
+        <button class="btn" data-act="labAdd">نشر التجربة</button>
+        <p class="muted sm">التجربة تظهر للطالب في صفحة «المعمل التفاعلي» في الموقع. كل اختبار بيتنفّذ جوه صندوق محمي بعد ما الطالب يشغّل الكود.</p>
+      </div>
+      <div class="card tw"><h2>التجارب (${a.length})</h2>${a.length ? `<table class="tbl"><thead><tr><th>العنوان</th><th>الشرح</th><th>اختبارات</th><th>الترتيب</th><th>الحالة</th><th></th></tr></thead><tbody>${a.map(x => `<tr><td>${esc((x.title && (x.title.ar || x.title)) || x.id)}</td><td style="max-width:300px">${esc(String((x.brief && (x.brief.ar || x.brief)) || '').slice(0, 120))}</td><td>${esc(String((x.tests || []).length))}</td><td>${esc(String(x.order || ''))}</td><td>${x.on ? 'مفعّلة' : 'موقوفة'}</td><td><button class="btn sm" data-act="labTog" data-id="${esc(x.id)}" data-v="${x.on ? 0 : 1}">${x.on ? 'إيقاف' : 'تفعيل'}</button> <button class="btn sm" data-act="labDel" data-id="${esc(x.id)}">حذف</button></td></tr>`).join('')}</tbody></table>` : '<p class="muted">مفيش تجارب بعد.</p>'}</div>`);
   },
   async aid() {
     busy(); let a = []; try { const q = await db.collection('aid').orderBy('at', 'desc').limit(100).get(); q.forEach(d => a.push({ id: d.id, ...d.data() })); } catch (e) { }
@@ -493,6 +514,20 @@ const ACT = {
   },
   async aiTog(el) { await db.collection('ai_tasks').doc(el.dataset.id).update({ on: el.dataset.v === '1' }); VIEWS.aitasks(); },
   async aiDel(el) { if (confirm('حذف المهمة نهائيًا؟')) { await db.collection('ai_tasks').doc(el.dataset.id).delete(); VIEWS.aitasks(); } },
+  async labAdd() {
+    const ar = ($('#lab-t-ar').value || '').trim(), en = ($('#lab-t-en').value || '').trim() || ar;
+    const bAr = ($('#lab-b-ar').value || '').trim(), bEn = ($('#lab-b-en').value || '').trim() || bAr;
+    const html = ($('#lab-html').value || '').trim().slice(0, 20000);
+    const js = ($('#lab-js').value || '').trim().slice(0, 20000);
+    const order = Math.min(99, Math.max(1, +($('#lab-order').value || 1)));
+    const tests = ($('#lab-tests').value || '').split('\n').map(l => l.trim()).filter(Boolean).map((l, i) => { const p = l.split('|'); const name = (p[0] || '').trim() || ('اختبار ' + (i + 1)); const expr = (p[1] || p[0] || '').trim(); return { name, expr }; }).filter(t => t.expr).slice(0, 12);
+    if (!ar || !js) return toast('اكتب العنوان والكود');
+    if (!tests.length) return toast('اكتب اختبار واحد على الأقل');
+    await db.collection('labs').add({ title: { ar, en }, brief: { ar: bAr, en: bEn }, code: { html, js }, tests, order, on: true, at: now() });
+    toast('تم نشر التجربة'); VIEWS.labs();
+  },
+  async labTog(el) { await db.collection('labs').doc(el.dataset.id).update({ on: el.dataset.v === '1' }); VIEWS.labs(); },
+  async labDel(el) { if (confirm('حذف التجربة نهائيًا؟')) { await db.collection('labs').doc(el.dataset.id).delete(); VIEWS.labs(); } },
   aidOpen(el) { aidDetail(el.dataset.id); },
   aidBack() { VIEWS.aid(); },
   aidNid() { const x = ST.cache.aidCur, v = $('#nid-v'); const shown = v.dataset.s === '1'; v.dataset.s = shown ? '' : '1'; v.textContent = shown ? maskN(x.natId) : x.natId; },
