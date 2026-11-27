@@ -363,7 +363,7 @@ async function uploadFs(file, kind) {
 }
 async function delFs(id) { const r = db.collection('files').doc(id), cs = await r.collection('chunks').get(); await Promise.all(cs.docs.map(d => d.ref.delete())); await r.delete(); }
 function pickFs(kind) { return new Promise((res, rej) => { const i = document.createElement('input'); i.type = 'file'; i.accept = FS_ACC[kind]; i.onchange = async () => { if (!i.files[0]) return; try { res('fs:' + await uploadFs(i.files[0], kind)); } catch (e) { rej(e); } }; i.click(); }); }
-const STEP_NAMES = { text: 'نص', article: 'مقال', video: 'فيديو', audio: 'صوت', pdf: 'PDF', choose: 'اختر', complete: 'أكمل' };
+const STEP_NAMES = { text: 'نص', article: 'مقال', video: 'فيديو', audio: 'صوت', pdf: 'PDF', choose: 'اختر', complete: 'أكمل', lab: 'معمل' };
 function courseForm(idF) {
   const o = ST.cur.obj;
   const head = `<div class="card">${idF}<div class="g2">${F('الحالة', 'status', { sel: [['open', 'متاحة'], ['soon', 'قريبًا']] })}${F('السعر (جنيه، 0 = مجانية)', 'price', { t: 'num' })}${F('المستوى', 'level', { sel: [['beginner', 'مبتدئ'], ['intermediate', 'متوسط'], ['advanced', 'متقدم']] })}${F('عدد الساعات', 'hours', { t: 'num', step: '0.5' })}${F('الغلاف (0 إلى 3)', 'art', { t: 'num' })}</div>${F('صورة الدورة (اختيارية، تحل محل الغلاف)', 'cover', { dir: 'ltr', ph: 'https://', up: 'img' })}${FB('عنوان الدورة', 't')}${FB('وصف الدورة', 'd', { area: 1 })}<div class="g2">${F('ماذا سيتعلم الطالب (عربي، سطر لكل نقطة)', 'outcomes.ar', { t: 'lines' })}${F('Outcomes (English, one per line)', 'outcomes.en', { t: 'lines', dir: 'ltr' })}</div></div>`;
@@ -386,13 +386,14 @@ function stepForm(mi, li, si, s) {
   else if (s.type === 'audio') f = FB('العنوان', p + '.t') + F('الصوت: ارفع ملفًا (حتى 60MB) أو ضع رابط https مباشر', p + '.src', { dir: 'ltr', ph: 'https://  أو  fs:…', up: 'audio' }) + FB('نص مصاحب (اختياري)', p + '.body', { t: 'blocks', rows: 4 });
   else if (s.type === 'pdf') f = FB('العنوان', p + '.t') + F('PDF: ارفع ملفًا (حتى 30MB) أو ضع رابط https (يجب أن يسمح الموقع المستضيف بالقراءة)', p + '.src', { dir: 'ltr', ph: 'https://  أو  fs:…', up: 'pdf' });
   else if (s.type === 'choose') f = FB('السؤال', p + '.q', { area: 1 }) + F('عدد محاولات هذا السؤال', p + '.tries', { t: 'num', ph: '2' }) + optEditor(p, s) + FB('شرح بعد الإجابة (اختياري)', p + '.x', { area: 1 });
+  else if (s.type === 'lab') f = FB('عنوان المعمل', p + '.t') + FB('الهدف', p + '.goal', { area: 1 }) + FB('المهام (سطر لكل خطوة)', p + '.tasks', { t: 'lines', rows: 5 }) + FB('تلميح (اختياري)', p + '.hint', { area: 1 }) + FB('النتيجة المتوقعة (اختياري)', p + '.result', { area: 1 });
   else if (s.type === 'complete') f = FB('السؤال (ضع ___ مكان الفراغ)', p + '.q', { area: 1 }) + F('عدد محاولات هذا السؤال', p + '.tries', { t: 'num', ph: '2' }) + F('الإجابات المقبولة (سطر لكل إجابة)', p + '.ans', { t: 'lines' }) + FB('شرح بعد الإجابة (اختياري)', p + '.x', { area: 1 });
   return `<div class="stp">${hd}<div style="margin-top:10px;display:grid;gap:10px">${f}</div></div>`;
 }
 const NEWSTEP = {
   text: () => ({ type: 'text', t: { ar: '', en: '' }, body: { ar: [], en: [] } }), article: () => ({ type: 'article', t: { ar: '', en: '' }, min: 3, body: { ar: [], en: [] } }),
   video: () => ({ type: 'video', t: { ar: '', en: '' }, src: '', note: { ar: '', en: '' } }), audio: () => ({ type: 'audio', t: { ar: '', en: '' }, src: '', body: { ar: [], en: [] } }), pdf: () => ({ type: 'pdf', t: { ar: '', en: '' }, src: '' }),
-  choose: () => ({ type: 'choose', tries: 2, t: { ar: 'اختبار: اختر', en: 'Quiz: choose' }, q: { ar: '', en: '' }, o: ['', ''], a: 0, tries: 2, x: { ar: '', en: '' } }), complete: () => ({ type: 'complete', tries: 2, t: { ar: 'اختبار: أكمل', en: 'Quiz: complete' }, q: { ar: '', en: '' }, ans: [], tries: 2, x: { ar: '', en: '' } })
+  choose: () => ({ type: 'choose', tries: 2, t: { ar: 'اختبار: اختر', en: 'Quiz: choose' }, q: { ar: '', en: '' }, o: ['', ''], a: 0, tries: 2, x: { ar: '', en: '' } }), lab: () => ({ type: 'lab', t: { ar: 'معمل: ', en: 'Lab: ' }, goal: { ar: '', en: '' }, tasks: { ar: [], en: [] }, hint: { ar: '', en: '' }, result: { ar: '', en: '' } }), complete: () => ({ type: 'complete', tries: 2, t: { ar: 'اختبار: أكمل', en: 'Quiz: complete' }, q: { ar: '', en: '' }, ans: [], tries: 2, x: { ar: '', en: '' } })
 };
 /* the "correct answer" field is shown 1-based */
 document.addEventListener('input', e => { const el = e.target; if (el.dataset && el.dataset.off && ST.cur) setP(ST.cur.obj, el.dataset.p, Math.max(0, (+el.value || 1) - 1)); }, true);
@@ -416,6 +417,7 @@ function cleanItem(kind, o) {
           if (s.type === 'choose') { if (!s.q.ar || !s.q.en) err.push(w + 'السؤال بالعربية والإنجليزية.'); if ((s.o || []).length < 2) err.push(w + 'خياران على الأقل.'); if (!(s.a >= 0 && s.a < (s.o || []).length)) err.push(w + 'رقم الإجابة الصحيحة خارج الخيارات.'); }
           else if (s.type === 'complete') { if (!s.q.ar || !s.q.en || !String(s.q.ar).includes('___') || !String(s.q.en).includes('___')) err.push(w + 'السؤال يحتاج ___ في النسختين.'); if (!(s.ans || []).length) err.push(w + 'أدخل إجابة مقبولة واحدة على الأقل.'); }
           else if (['video', 'audio', 'pdf'].includes(s.type)) { if (!/^(https:\/\/|fs:[A-Za-z0-9]{20}$)/.test(s.src || '')) err.push(w + 'الرابط يجب أن يبدأ بـ https:// أو يكون ملفًا مرفوعًا.'); if (s.note && blank(s.note)) delete s.note; if (s.body && blank(s.body)) delete s.body; }
+          else if (s.type === 'lab') { s.tasks = s.tasks || { ar: [], en: [] }; ['ar', 'en'].forEach(k => { s.tasks[k] = (s.tasks[k] || []).map(x => String(x).trim()).filter(Boolean); }); if (!s.tasks.ar.length || s.tasks.ar.length !== s.tasks.en.length) err.push(w + 'المعمل يحتاج مهامًا بنفس العدد بالعربية والإنجليزية.'); if (s.tasks.ar.length > 12) err.push(w + 'الحد الأقصى 12 خطوة في المعمل.'); ['hint', 'result'].forEach(k => { if (s[k] && blank(s[k])) delete s[k]; }); }
           else if (s.type === 'text' || s.type === 'article') { if (blank(s.body.ar) && blank(s.body.en)) err.push(w + 'المحتوى فارغ.'); } }); }
     }));
     if (!o.modules.some(m => m.lessons.length)) err.push('أضف محاضرة واحدة على الأقل.');
