@@ -585,6 +585,7 @@ const ACT = {
     const v = el.dataset.v, d = { status: v }; if (v === 'paid') d.paidAt = now(); const o = (ST.cache.orders || []).find(x => x.id === el.dataset.id);
     try {
       await db.collection('orders').doc(el.dataset.id).update(d);
+      if (o && (v === 'paid' || v === 'rejected')) { try { const tk = await auth.currentUser.getIdToken(); fetch('https://sarmad-bot.khaledahmedelbrbary80.workers.dev/adm/ordermail', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ t: tk, orderId: el.dataset.id, kind: v === 'paid' ? 'sub_paid' : 'sub_rejected' }) }).catch(() => { }); } catch (e) { } }
       if (o && o.ref) {
         if (v === 'paid') { let nm = ''; try { const u = await db.collection('users').doc(o.userId).get(), parts = String((u.data() || {}).name || '').trim().split(/\s+/); nm = parts[0] + (parts[1] ? ' ' + parts[1][0] + '.' : ''); } catch (e) { }
           const t = typeof o.title === 'object' ? (o.title.ar || '') : o.title; await db.collection('invoices').doc(o.ref).set({ ref: o.ref, orderId: o.id, title: t || '', amount: +o.amount || 0, baseAmount: +o.baseAmount || +o.amount || 0, discount: +o.discount || 0, coupon: o.coupon || '', name: nm, status: 'paid', paidAt: now() }); }
